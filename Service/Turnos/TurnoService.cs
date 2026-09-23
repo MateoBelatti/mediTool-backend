@@ -124,7 +124,7 @@ namespace Service.Turnos
 
             turno.Estado = dto.Asistio ? EstadoTurno.Presente.ToString() : EstadoTurno.Ausente.ToString();
             turno.Justificada = dto.Justificada;
-            turno.Facturable = dto.Facturable;
+            turno.Facturable = dto.Asistio || dto.Justificada;
             turno.Observaciones = dto.Observaciones;
 
             await _turnoRepository.Actualizar(turno);

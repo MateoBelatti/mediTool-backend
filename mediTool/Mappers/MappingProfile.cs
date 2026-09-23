@@ -53,8 +53,6 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado.ToString()));
 
-            // Mapeos de Asistencia
-
             // Mapeos de salida (response DTOs)
             CreateMap<Paciente, PacienteResumenDto>();
             CreateMap<Profesional, ProfesionalResumenDto>();
