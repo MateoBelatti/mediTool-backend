@@ -91,5 +91,70 @@ namespace Service.Turnos
             await _turnoRepository.Actualizar(turno);
             await _turnoRepository.GuardarCambios();
         }
+
+        public async Task<TurnoResponseDto> RegistrarAsistencia(int turnoId, bool asistio, bool? justificada, string? observaciones)
+        {
+            var turno = await _turnoRepository.ObtenerPorId(turnoId);
+            if (turno == null)
+                throw new NotFoundError($"Turno {turnoId} no encontrado");
+
+            if (turno.Estado == EstadoTurno.Presente.ToString() || turno.Estado == EstadoTurno.Ausente.ToString())
+                throw new ConflictError($"Ya existe una asistencia registrada para el turno {turnoId}");
+
+            turno.Estado = asistio ? EstadoTurno.Presente.ToString() : EstadoTurno.Ausente.ToString();
+            turno.Justificada = justificada ?? false;
+            turno.Facturable = asistio || (justificada ?? false);
+            turno.FechaRegistroAsistencia = DateTime.Now;
+            turno.Observaciones = observaciones;
+
+            await _turnoRepository.Actualizar(turno);
+            await _turnoRepository.GuardarCambios();
+
+            return _mapper.Map<TurnoResponseDto>(turno);
+        }
+
+        public async Task<TurnoResponseDto> ActualizarAsistencia(int turnoId, ActualizarAsistenciaDto dto)
+        {
+            var turno = await _turnoRepository.ObtenerPorId(turnoId);
+            if (turno == null)
+                throw new NotFoundError($"Turno {turnoId} no encontrado");
+
+            if (turno.Estado != EstadoTurno.Presente.ToString() && turno.Estado != EstadoTurno.Ausente.ToString())
+                throw new NotFoundError($"No hay asistencia registrada para el turno {turnoId}");
+
+            turno.Estado = dto.Asistio ? EstadoTurno.Presente.ToString() : EstadoTurno.Ausente.ToString();
+            turno.Justificada = dto.Justificada;
+            turno.Facturable = dto.Facturable;
+            turno.Observaciones = dto.Observaciones;
+
+            await _turnoRepository.Actualizar(turno);
+            await _turnoRepository.GuardarCambios();
+
+            return _mapper.Map<TurnoResponseDto>(turno);
+        }
+
+        public async Task<List<TurnoResponseDto>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta)
+        {
+            var turnos = await _turnoRepository.ObtenerFacturables(pacienteId, desde, hasta);
+            return _mapper.Map<List<TurnoResponseDto>>(turnos);
+        }
+
+        public async Task<ResumenAsistenciaDto> ObtenerResumenPorTurnoFijo(int turnoFijoId)
+        {
+            var turnos = await _turnoRepository.ObtenerFuturosPorTurnoFijo(turnoFijoId, DateTime.MinValue);
+
+            var totalAsistencias = turnos.Count(t => t.Estado == EstadoTurno.Presente.ToString());
+            var totalJustificadas = turnos.Count(t => t.Estado == EstadoTurno.Ausente.ToString() && t.Justificada);
+            var totalInjustificadas = turnos.Count(t => t.Estado == EstadoTurno.Ausente.ToString() && !t.Justificada);
+
+            return new ResumenAsistenciaDto
+            {
+                TurnoFijoId = turnoFijoId,
+                TotalTurnos = turnos.Count,
+                TotalAsistencias = totalAsistencias,
+                TotalAusenciasJustificadas = totalJustificadas,
+                TotalAusenciasInjustificadas = totalInjustificadas
+            };
+        }
     }
 }

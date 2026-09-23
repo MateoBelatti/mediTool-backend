@@ -305,6 +305,10 @@ namespace Biblioteca.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_registro");
 
+                    b.Property<DateTime?>("FechaRegistroAsistencia")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_registro_asistencia");
+
                     b.Property<bool>("Justificada")
                         .HasColumnType("boolean")
                         .HasColumnName("justificada");

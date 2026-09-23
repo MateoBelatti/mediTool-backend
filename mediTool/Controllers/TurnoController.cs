@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Service.Turnos;
+using Service.TurnosFijos;
 using Utils.DTOs.Turno;
 using Utils.Helpers;
 
@@ -12,11 +13,16 @@ namespace mediTool.Controllers
     public class TurnoController : ControllerBase
     {
         private readonly ITurnoService _turnoService;
+        private readonly ITurnoFijoService _turnoFijoService;
         private readonly IGenerarInstanciasTurnoService _generarInstanciasService;
 
-        public TurnoController(ITurnoService turnoService, IGenerarInstanciasTurnoService generarInstanciasService)
+        public TurnoController(
+            ITurnoService turnoService,
+            ITurnoFijoService turnoFijoService,
+            IGenerarInstanciasTurnoService generarInstanciasService)
         {
             _turnoService = turnoService;
+            _turnoFijoService = turnoFijoService;
             _generarInstanciasService = generarInstanciasService;
         }
 
@@ -68,6 +74,43 @@ namespace mediTool.Controllers
             User.EnsureOwnership(turno.ProfesionalId);
             await _turnoService.CambiarEstado(id, nuevoEstado);
             return NoContent();
+        }
+
+        [HttpPatch("{id}/asistencia")]
+        public async Task<IActionResult> RegistrarActualizarAsistencia(int id, [FromBody] ActualizarAsistenciaDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var turno = await _turnoService.ObtenerPorId(id);
+            User.EnsureOwnership(turno.ProfesionalId);
+
+            var yaRegistrada = turno.Estado == EstadoTurno.Presente.ToString() || turno.Estado == EstadoTurno.Ausente.ToString();
+
+            var result = yaRegistrada
+                ? await _turnoService.ActualizarAsistencia(id, dto)
+                : await _turnoService.RegistrarAsistencia(id, dto.Asistio, dto.Justificada, dto.Observaciones);
+
+            return Ok(result);
+        }
+
+        [HttpGet("turnofijo/{turnoFijoId}/resumen-asistencia")]
+        public async Task<IActionResult> GetResumenAsistencia(int turnoFijoId)
+        {
+            var turnoFijo = await _turnoFijoService.ObtenerPorId(turnoFijoId);
+            if (turnoFijo == null) return NotFound();
+
+            User.EnsureOwnership(turnoFijo.ProfesionalId);
+
+            var resumen = await _turnoService.ObtenerResumenPorTurnoFijo(turnoFijoId);
+            return Ok(resumen);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpGet("facturables")]
+        public async Task<IActionResult> GetFacturables([FromQuery] int pacienteId, [FromQuery] DateTime desde, [FromQuery] DateTime hasta)
+        {
+            var turnos = await _turnoService.ObtenerFacturables(pacienteId, desde, hasta);
+            return Ok(turnos);
         }
 
         [Authorize(Policy = "Admin")]

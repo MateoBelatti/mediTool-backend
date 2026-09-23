@@ -37,6 +37,9 @@ namespace Biblioteca.Entities
         [Column("justificada")]
         public bool Justificada { get; set; }
 
+        [Column("fecha_registro_asistencia")]
+        public DateTime? FechaRegistroAsistencia { get; set; }
+
         [Column("facturable")]
         public bool Facturable { get; set; }
 
