@@ -22,42 +22,6 @@ namespace Biblioteca.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Biblioteca.Entities.Asistencia", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Asistio")
-                        .HasColumnType("boolean")
-                        .HasColumnName("asistio");
-
-                    b.Property<bool>("Facturable")
-                        .HasColumnType("boolean")
-                        .HasColumnName("facturable");
-
-                    b.Property<DateTime>("FechaRegistro")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_registro");
-
-                    b.Property<bool>("Justificada")
-                        .HasColumnType("boolean")
-                        .HasColumnName("justificada");
-
-                    b.Property<int?>("TurnoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("turno_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TurnoId");
-
-                    b.ToTable("asistencia");
-                });
-
             modelBuilder.Entity("Biblioteca.Entities.Informe", b =>
                 {
                     b.Property<int>("Id")
@@ -329,9 +293,26 @@ namespace Biblioteca.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("estado");
 
+                    b.Property<bool>("Facturable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("facturable");
+
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_hora");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_registro");
+
+                    b.Property<bool>("Justificada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("justificada");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("observaciones");
 
                     b.Property<int>("PacienteId")
                         .HasColumnType("integer")
@@ -404,16 +385,6 @@ namespace Biblioteca.Migrations
                     b.HasIndex("ProfesionalId");
 
                     b.ToTable("turno_fijo");
-                });
-
-            modelBuilder.Entity("Biblioteca.Entities.Asistencia", b =>
-                {
-                    b.HasOne("Biblioteca.Entities.Turno", "Turno")
-                        .WithMany("Asistencias")
-                        .HasForeignKey("TurnoId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Turno");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.Informe", b =>
@@ -523,11 +494,6 @@ namespace Biblioteca.Migrations
                     b.Navigation("PacienteProfesionales");
 
                     b.Navigation("Reuniones");
-                });
-
-            modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
-                {
-                    b.Navigation("Asistencias");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.TurnoFijo", b =>
