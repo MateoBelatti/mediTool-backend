@@ -16,7 +16,7 @@ namespace Biblioteca.Repository
         // Tablas Branch feature/turnos
         public DbSet<TurnoFijo> TurnosFijos { get; set; }
         public DbSet<Turno> Turnos { get; set; }
-        public DbSet<Asistencia> Asistencias { get; set; }
+
         //Tablas Branch feature/informe-reuniones
         public DbSet<Informe> Informes { get; set; }
         public DbSet<Reunion> Reuniones { get; set; }
@@ -103,12 +103,6 @@ namespace Biblioteca.Repository
                 .HasForeignKey(t => t.TurnoFijoId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure Asistencia relationships
-            modelBuilder.Entity<Asistencia>()
-                .HasOne(a => a.Turno)
-                .WithMany(t => t.Asistencias)
-                .HasForeignKey(a => a.TurnoId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
