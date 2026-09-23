@@ -11,6 +11,10 @@ namespace Utils.DTOs.Turno
         public DateTime FechaHora { get; set; }
         public int DuracionMin { get; set; }
         public string Estado { get; set; } = string.Empty;
+        public bool Justificada { get; set; }
+        public bool Facturable { get; set; }
+        public DateTime FechaRegistro { get; set; }
+        public string? Observaciones { get; set; }
         public PacienteResumenDto? Paciente { get; set; }
         public ProfesionalResumenDto? Profesional { get; set; }
     }

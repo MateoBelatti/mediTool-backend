@@ -45,7 +45,8 @@ namespace Service.Turnos
                     ProfesionalId = regla.ProfesionalId,
                     FechaHora = fechaHora,
                     DuracionMin = regla.DuracionMin,
-                    Estado = "Pendiente"
+                    Estado = "Pendiente",
+                    FechaRegistro = DateTime.UtcNow
                 };
 
                 turnosGenerados.Add(turno);

@@ -53,6 +53,7 @@ namespace Service.Turnos
 
             var turno = _mapper.Map<Turno>(dto);
             turno.FechaHora = turno.FechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(turno.FechaHora, DateTimeKind.Utc) : turno.FechaHora.ToUniversalTime();
+            turno.FechaRegistro = DateTime.UtcNow;
             await _turnoRepository.Agregar(turno);
             await _turnoRepository.GuardarCambios();
 

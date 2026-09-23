@@ -21,5 +21,9 @@ namespace Utils.DTOs.Turno
         public int DuracionMin { get; set; }
 
         public EstadoTurno Estado { get; set; } = EstadoTurno.Pendiente;
+
+        public bool Justificada { get; set; }
+        public bool Facturable { get; set; }
+        public string? Observaciones { get; set; }
     }
 }
