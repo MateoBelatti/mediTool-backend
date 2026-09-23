@@ -98,6 +98,24 @@ namespace Repository.Turnos
             return await query.OrderBy(t => t.FechaHora).ToListAsync();
         }
 
+        public async Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+            desde = ToUtc(desde);
+            hasta = ToUtc(hasta);
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .Where(t => t.PacienteId == pacienteId &&
+                            t.Facturable &&
+                            t.Estado != "Cancelado" &&
+                            t.FechaHora >= desde &&
+                            t.FechaHora <= hasta)
+                .OrderBy(t => t.FechaHora)
+                .ToListAsync();
+        }
+
         public async Task<Turno?> ObtenerUltimoPorTurnoFijo(int turnoFijoId)
         {
             if (turnoFijoId <= 0)
