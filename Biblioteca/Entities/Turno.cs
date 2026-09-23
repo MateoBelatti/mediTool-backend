@@ -58,6 +58,5 @@ namespace Biblioteca.Entities
         [ForeignKey("ProfesionalId")]
         public Profesional? Profesional { get; set; }
 
-        public ICollection<Asistencia> Asistencias { get; set; } = new List<Asistencia>();
     }
 }

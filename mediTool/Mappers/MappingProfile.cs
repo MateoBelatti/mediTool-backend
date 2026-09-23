@@ -7,7 +7,6 @@ using Utils.DTOs.Profesional;
 // Branch feature/turnos
 using Utils.DTOs.TurnoFijo;
 using Utils.DTOs.Turno;
-using Utils.DTOs.Asistencia;
 // Branch feature/informe-reuniones
 using Utils.DTOs.Informe;
 using Utils.DTOs.Reunion;
@@ -55,17 +54,13 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado.ToString()));
 
             // Mapeos de Asistencia
-            CreateMap<ActualizarAsistenciaDto, Asistencia>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.TurnoId, opt => opt.Ignore())
-                .ForMember(dest => dest.FechaRegistro, opt => opt.Ignore());
 
             // Mapeos de salida (response DTOs)
             CreateMap<Paciente, PacienteResumenDto>();
             CreateMap<Profesional, ProfesionalResumenDto>();
             CreateMap<Turno, TurnoResponseDto>();
             CreateMap<TurnoFijo, TurnoFijoResponseDto>();
-            CreateMap<Asistencia, AsistenciaResponseDto>();
+
 
             // Mapeos de Informe
             CreateMap<InformeCreateDto, Informe>()
