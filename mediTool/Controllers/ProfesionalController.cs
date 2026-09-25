@@ -83,13 +83,5 @@ namespace mediTool.Controllers
             await _profesionalService.VincularPacienteAsync(id, pacienteId);
             return Ok();
         }
-
-        [HttpGet("{id}/pacientes")]
-        public async Task<IActionResult> GetPacientesVinculados(int id)
-        {
-            User.EnsureOwnership(id);
-            var pacientes = await _profesionalService.GetPacientesVinculadosAsync(id);
-            return Ok(pacientes);
-        }
     }
 }
