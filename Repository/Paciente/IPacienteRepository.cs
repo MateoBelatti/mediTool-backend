@@ -14,8 +14,11 @@ namespace Repository.Pacientes
         Task<Paciente> UpdateAsync(Paciente entity);
         Task<bool> DeleteAsync(Paciente entity);
         Task<Paciente?> GetByIdAsync(int id);
+        Task<Paciente?> GetByIdIncludingInactiveAsync(int id);
         Task<Paciente?> GetByDniAsync(string dni);
+        Task<Paciente?> GetByDniIncludingInactiveAsync(string dni);
         Task<Paciente?> GetByEmailAsync(string email);
+        Task<Paciente?> GetByEmailIncludingInactiveAsync(string email);
         Task<IEnumerable<Paciente>> GetByObraSocialAsync(string obraSocial);
         Task GuardarCambios();
     }
