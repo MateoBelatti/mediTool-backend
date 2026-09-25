@@ -72,6 +72,12 @@ namespace Biblioteca.Migrations
 
             modelBuilder.Entity("Biblioteca.Entities.Paciente", b =>
                 {
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
+
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -103,6 +109,10 @@ namespace Biblioteca.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("email");
+
+                    b.Property<DateTime?>("FechaBaja")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_baja");
 
                     b.Property<DateOnly?>("FechaNacimiento")
                         .HasColumnType("date")

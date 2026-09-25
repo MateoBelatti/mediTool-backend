@@ -35,6 +35,11 @@ namespace Biblioteca.Repository
                 .HasIndex(p => p.Dni)
                 .IsUnique();
 
+            modelBuilder.Entity<Paciente>()
+                .Property(p => p.Activo)
+                .HasDefaultValue(true)
+                .ValueGeneratedOnAdd();
+
             // Configure Many-to-Many relationship
             modelBuilder.Entity<PacienteProfesional>()
                 .HasKey(pp => new { pp.PacienteId, pp.ProfesionalId });

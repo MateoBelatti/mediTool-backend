@@ -50,6 +50,12 @@ namespace Biblioteca.Entities
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
 
+        [Column("activo")]
+        public bool Activo { get; set; } = true;
+
+        [Column("fecha_baja")]
+        public DateTime? FechaBaja { get; set; }
+
         public ICollection<PacienteProfesional> PacienteProfesionales { get; set; } = new List<PacienteProfesional>();
         public ICollection<Informe> Informes { get; set; } = new List<Informe>();
     }
