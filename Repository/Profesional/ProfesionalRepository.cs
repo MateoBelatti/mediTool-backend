@@ -81,17 +81,23 @@ namespace Repository.Profesionales
                 throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
             if (pacienteId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+
+            var pacienteActivo = await _context.Pacientes
+                .AnyAsync(p => p.Id == pacienteId && p.Activo);
+            if (!pacienteActivo)
+                throw new KeyNotFoundException($"Paciente {pacienteId} no encontrado o está dado de baja.");
+
             var vinculacion = new PacienteProfesional
             {
                 ProfesionalId = profesionalId,
                 PacienteId = pacienteId,
                 FechaVinculacion = DateTime.UtcNow
             };
-            
+
             // Verificamos si ya existe la vinculación para no duplicar
             var exists = await _context.PacienteProfesionales
                 .AnyAsync(pp => pp.ProfesionalId == profesionalId && pp.PacienteId == pacienteId);
-                
+
             if (!exists)
             {
                 _context.PacienteProfesionales.Add(vinculacion);
@@ -103,7 +109,7 @@ namespace Repository.Profesionales
             if (profesionalId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
             return await _context.PacienteProfesionales
-                .Where(pp => pp.ProfesionalId == profesionalId)
+                .Where(pp => pp.ProfesionalId == profesionalId && pp.Paciente.Activo)
                 .Select(pp => pp.Paciente)
                 .ToListAsync();
         }

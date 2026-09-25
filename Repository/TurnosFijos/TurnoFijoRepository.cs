@@ -16,9 +16,20 @@ namespace Repository.TurnosFijos
         public async Task Actualizar(TurnoFijo turnoFijo)
         {
             ArgumentNullException.ThrowIfNull(turnoFijo, nameof(turnoFijo));
-            var existe = await _context.TurnosFijos.AnyAsync(t => t.Id == turnoFijo.Id);
-            if (!existe)
+            var persisted = await _context.TurnosFijos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == turnoFijo.Id);
+            if (persisted == null)
                 throw new KeyNotFoundException($"TurnoFijo {turnoFijo.Id} no encontrado.");
+
+            if (persisted.PacienteId != turnoFijo.PacienteId)
+            {
+                var pacienteActivo = await _context.Pacientes
+                    .AnyAsync(p => p.Id == turnoFijo.PacienteId && p.Activo);
+                if (!pacienteActivo)
+                    throw new KeyNotFoundException($"Paciente {turnoFijo.PacienteId} no encontrado o está dado de baja.");
+            }
+
             _context.TurnosFijos.Update(turnoFijo);
             await Task.CompletedTask;
         }
@@ -26,6 +37,10 @@ namespace Repository.TurnosFijos
         public async Task Agregar(TurnoFijo turnoFijo)
         {
             ArgumentNullException.ThrowIfNull(turnoFijo, nameof(turnoFijo));
+            var pacienteActivo = await _context.Pacientes
+                .AnyAsync(p => p.Id == turnoFijo.PacienteId && p.Activo);
+            if (!pacienteActivo)
+                throw new KeyNotFoundException($"Paciente {turnoFijo.PacienteId} no encontrado o está dado de baja.");
             await _context.TurnosFijos.AddAsync(turnoFijo);
         }
 
@@ -37,7 +52,7 @@ namespace Repository.TurnosFijos
         public async Task<List<TurnoFijo>> ObtenerActivos()
         {
             return await _context.TurnosFijos
-                .Where(t => t.Activo)
+                .Where(t => t.Activo && t.Paciente.Activo)
                 .ToListAsync();
         }
 

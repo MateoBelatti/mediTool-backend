@@ -37,6 +37,7 @@ namespace Repository.Informes
         public async Task<Informe> AddAsync(Informe entity)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
+            await ValidarPacienteActivoAsync(entity.PacienteId);
             entity.CreatedAt = DateTime.UtcNow;
             await _context.Informes.AddAsync(entity);
             return entity;
@@ -50,9 +51,15 @@ namespace Repository.Informes
         public async Task<Informe> UpdateAsync(Informe entity)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
-            var existe = await _context.Informes.AnyAsync(i => i.Id == entity.Id);
-            if (!existe)
+            var persisted = await _context.Informes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == entity.Id);
+            if (persisted == null)
                 throw new KeyNotFoundException($"Informe {entity.Id} no encontrado.");
+
+            if (persisted.PacienteId != entity.PacienteId)
+                await ValidarPacienteActivoAsync(entity.PacienteId);
+
             _context.Informes.Update(entity);
             return entity;
         }
@@ -66,6 +73,17 @@ namespace Repository.Informes
             if (existing == null) return false;
             _context.Informes.Remove(existing);
             return true;
+        }
+
+        private async Task ValidarPacienteActivoAsync(int? pacienteId)
+        {
+            if (!pacienteId.HasValue)
+                return;
+
+            var pacienteActivo = await _context.Pacientes
+                .AnyAsync(p => p.Id == pacienteId.Value && p.Activo);
+            if (!pacienteActivo)
+                throw new KeyNotFoundException($"Paciente {pacienteId.Value} no encontrado o está dado de baja.");
         }
     }
 }
