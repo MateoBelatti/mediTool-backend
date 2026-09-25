@@ -34,6 +34,39 @@ namespace Repository.Pacientes
                 .ToListAsync();
         }
 
+        public async Task<(IEnumerable<Paciente> Items, int TotalItems)> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null)
+        {
+            if (page < 1)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
+            if (pageSize < 1 || pageSize > 100)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "El tamaño de página debe estar entre 1 y 100.");
+            if (profesionalId.HasValue && profesionalId.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
+
+            IQueryable<Paciente> query = _context.Pacientes;
+            if (profesionalId.HasValue)
+            {
+                query = _context.PacienteProfesionales
+                    .Where(pp => pp.ProfesionalId == profesionalId.Value)
+                    .Select(pp => pp.Paciente);
+            }
+
+            var skip = (long)(page - 1) * pageSize;
+            if (skip > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página solicitada es demasiado grande.");
+
+            var totalItems = await query.CountAsync();
+            var items = await query
+                .OrderBy(p => p.Apellido)
+                .ThenBy(p => p.Nombre)
+                .ThenBy(p => p.Id)
+                .Skip((int)skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalItems);
+        }
+
         public async Task<bool> IsVinculadoAsync(int pacienteId, int profesionalId)
         {
             if (pacienteId <= 0)

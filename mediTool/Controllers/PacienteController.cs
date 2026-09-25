@@ -21,16 +21,16 @@ namespace mediTool.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            var pacientes = await _pacienteService.GetAllAsync(null);
+            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize);
             return Ok(pacientes);
         }
 
         [HttpGet("vinculados")]
-        public async Task<IActionResult> GetVinculados()
+        public async Task<IActionResult> GetVinculados([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            var pacientes = await _pacienteService.GetAllAsync(User.GetUserId());
+            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize, User.GetUserId());
             return Ok(pacientes);
         }
 

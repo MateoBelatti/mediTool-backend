@@ -21,7 +21,10 @@ namespace mediTool.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            User.EnsureOwnership(id);
+            if (!User.IsAdmin())
+            {
+                User.EnsureOwnership(id);
+            }
             var profesional = await _profesionalService.GetByIdAsync(id);
             if (profesional == null)
             {
@@ -30,7 +33,6 @@ namespace mediTool.Controllers
             return Ok(profesional);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProfesionalCreateDto dto)
         {

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using Repository.Pacientes;
+using Utils.DTOs.Comun;
 using Utils.DTOs.Paciente;
 using Utils.Exceptions;
 using System.Text.RegularExpressions;
@@ -14,6 +15,7 @@ namespace Service.Pacientes
         private static readonly Regex DniRegex = new(@"^\d{7,8}$", RegexOptions.Compiled);
         private static readonly Regex PhoneRegex = new(@"^[\d\s\-\+\(\)]{6,30}$", RegexOptions.Compiled);
         private const int MaxAgeYears = 120;
+        private const int MaxPageSize = 100;
 
         public PacienteService(IPacienteRepository repository, IMapper mapper)
         {
@@ -27,6 +29,24 @@ namespace Service.Pacientes
                 ? await _repository.GetAllVinculadosAsync(profesionalId.Value)
                 : await _repository.GetAllAsync();
             return _mapper.Map<IEnumerable<PacienteResponseDto>>(result);
+        }
+
+        public async Task<PageResult<PacienteResponseDto>> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null)
+        {
+            ValidatePagination(page, pageSize);
+
+            var result = await _repository.GetAllPagedAsync(page, pageSize, profesionalId);
+            var items = _mapper.Map<IEnumerable<PacienteResponseDto>>(result.Items).ToList();
+            var totalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+            return new PageResult<PacienteResponseDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = result.TotalItems,
+                TotalPages = totalPages
+            };
         }
 
         public async Task<PacienteResponseDto> AddAsync(PacienteCreateDto dto, int? profesionalId = null)
@@ -148,6 +168,15 @@ namespace Service.Pacientes
 
             var result = await _repository.GetByObraSocialAsync(obraSocial.Trim());
             return _mapper.Map<IEnumerable<PacienteResponseDto>>(result);
+        }
+
+        private static void ValidatePagination(int page, int pageSize)
+        {
+            if (page < 1)
+                throw new ValidationError("La página debe ser mayor o igual que 1.");
+
+            if (pageSize < 1 || pageSize > MaxPageSize)
+                throw new ValidationError($"El tamaño de página debe estar entre 1 y {MaxPageSize}.");
         }
 
         private static void ValidatePacienteDto(dynamic dto)
