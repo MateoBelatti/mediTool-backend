@@ -20,11 +20,15 @@ namespace mediTool.Mappers
             // Mapeos de Paciente
             CreateMap<PacienteCreateDto, Paciente>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Activo, opt => opt.Ignore())
+                .ForMember(dest => dest.FechaBaja, opt => opt.Ignore());
 
             CreateMap<PacienteUpdateDto, Paciente>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Activo, opt => opt.Ignore())
+                .ForMember(dest => dest.FechaBaja, opt => opt.Ignore());
 
             CreateMap<Paciente, PacienteResponseDto>();
 

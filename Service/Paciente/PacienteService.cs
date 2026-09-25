@@ -58,14 +58,14 @@ namespace Service.Pacientes
 
             if (!string.IsNullOrWhiteSpace(normalizedDni))
             {
-                var existingDni = await _repository.GetByDniAsync(normalizedDni);
+                var existingDni = await _repository.GetByDniIncludingInactiveAsync(normalizedDni);
                 if (existingDni != null)
                     throw new ConflictError("Ya existe un paciente con este DNI.");
             }
 
             if (!string.IsNullOrWhiteSpace(normalizedEmail))
             {
-                var existingEmail = await _repository.GetByEmailAsync(normalizedEmail);
+                var existingEmail = await _repository.GetByEmailIncludingInactiveAsync(normalizedEmail);
                 if (existingEmail != null)
                     throw new ConflictError("Ya existe un paciente con este email.");
             }
@@ -73,6 +73,8 @@ namespace Service.Pacientes
             var entity = _mapper.Map<Paciente>(dto);
             entity.Email = normalizedEmail;
             entity.Dni = normalizedDni;
+            entity.Activo = true;
+            entity.FechaBaja = null;
             var result = await _repository.AddAsync(entity);
             await _repository.GuardarCambios();
 
@@ -97,14 +99,14 @@ namespace Service.Pacientes
 
             if (!string.IsNullOrWhiteSpace(normalizedDni) && normalizedDni != existing.Dni)
             {
-                var existingDni = await _repository.GetByDniAsync(normalizedDni);
+                var existingDni = await _repository.GetByDniIncludingInactiveAsync(normalizedDni);
                 if (existingDni != null && existingDni.Id != id)
                     throw new ConflictError("Ya existe un paciente con este DNI.");
             }
 
             if (!string.IsNullOrWhiteSpace(normalizedEmail) && normalizedEmail != existing.Email)
             {
-                var existingEmail = await _repository.GetByEmailAsync(normalizedEmail);
+                var existingEmail = await _repository.GetByEmailIncludingInactiveAsync(normalizedEmail);
                 if (existingEmail != null && existingEmail.Id != id)
                     throw new ConflictError("Ya existe un paciente con este email.");
             }
@@ -119,8 +121,10 @@ namespace Service.Pacientes
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _repository.GetByIdAsync(id);
+            var existing = await _repository.GetByIdIncludingInactiveAsync(id);
             if (existing == null) return false;
+            if (!existing.Activo)
+                throw new ConflictError("El paciente ya se encuentra dado de baja.");
 
             var success = await _repository.DeleteAsync(existing);
             await _repository.GuardarCambios();
