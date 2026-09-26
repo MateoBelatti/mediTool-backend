@@ -27,12 +27,10 @@ namespace Repository.Turnos
             if (persisted == null)
                 throw new KeyNotFoundException($"Turno {turno.Id} no encontrado.");
 
-            if (persisted.PacienteId != turno.PacienteId)
+            if (persisted.PacienteId != turno.PacienteId || persisted.ProfesionalId != turno.ProfesionalId)
             {
-                var pacienteActivo = await _context.Pacientes
-                    .AnyAsync(p => p.Id == turno.PacienteId && p.Activo);
-                if (!pacienteActivo)
-                    throw new KeyNotFoundException($"Paciente {turno.PacienteId} no encontrado o está dado de baja.");
+                await _context.ValidarPacienteActivoAsync(turno.PacienteId);
+                await _context.ValidarVinculacionAsync(turno.PacienteId, turno.ProfesionalId);
             }
 
             _context.Turnos.Update(turno);
@@ -49,10 +47,8 @@ namespace Repository.Turnos
         public async Task Agregar(Turno turno)
         {
             ArgumentNullException.ThrowIfNull(turno, nameof(turno));
-            var pacienteActivo = await _context.Pacientes
-                .AnyAsync(p => p.Id == turno.PacienteId && p.Activo);
-            if (!pacienteActivo)
-                throw new KeyNotFoundException($"Paciente {turno.PacienteId} no encontrado o está dado de baja.");
+            await _context.ValidarPacienteActivoAsync(turno.PacienteId);
+            await _context.ValidarVinculacionAsync(turno.PacienteId, turno.ProfesionalId);
             await _context.Turnos.AddAsync(turno);
         }
 

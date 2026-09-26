@@ -77,41 +77,24 @@ namespace Repository.Profesionales
 
         public async Task VincularPacienteAsync(int profesionalId, int pacienteId)
         {
+            await _context.VincularAsync(pacienteId, profesionalId);
+        }
+
+        public async Task<bool> DesvincularPacienteAsync(int profesionalId, int pacienteId)
+        {
             if (profesionalId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
             if (pacienteId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
 
-            var pacienteActivo = await _context.Pacientes
-                .AnyAsync(p => p.Id == pacienteId && p.Activo);
-            if (!pacienteActivo)
-                throw new KeyNotFoundException($"Paciente {pacienteId} no encontrado o está dado de baja.");
+            var vinculacion = await _context.PacienteProfesionales
+                .FirstOrDefaultAsync(pp => pp.ProfesionalId == profesionalId && pp.PacienteId == pacienteId);
 
-            var vinculacion = new PacienteProfesional
-            {
-                ProfesionalId = profesionalId,
-                PacienteId = pacienteId,
-                FechaVinculacion = DateTime.UtcNow
-            };
+            if (vinculacion == null)
+                return false;
 
-            // Verificamos si ya existe la vinculación para no duplicar
-            var exists = await _context.PacienteProfesionales
-                .AnyAsync(pp => pp.ProfesionalId == profesionalId && pp.PacienteId == pacienteId);
-
-            if (!exists)
-            {
-                _context.PacienteProfesionales.Add(vinculacion);
-            }
-        }
-
-        public async Task<IEnumerable<Paciente>> GetPacientesVinculadosAsync(int profesionalId)
-        {
-            if (profesionalId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
-            return await _context.PacienteProfesionales
-                .Where(pp => pp.ProfesionalId == profesionalId && pp.Paciente.Activo)
-                .Select(pp => pp.Paciente)
-                .ToListAsync();
+            _context.PacienteProfesionales.Remove(vinculacion);
+            return true;
         }
     }
 }

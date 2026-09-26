@@ -22,12 +22,10 @@ namespace Repository.TurnosFijos
             if (persisted == null)
                 throw new KeyNotFoundException($"TurnoFijo {turnoFijo.Id} no encontrado.");
 
-            if (persisted.PacienteId != turnoFijo.PacienteId)
+            if (persisted.PacienteId != turnoFijo.PacienteId || persisted.ProfesionalId != turnoFijo.ProfesionalId)
             {
-                var pacienteActivo = await _context.Pacientes
-                    .AnyAsync(p => p.Id == turnoFijo.PacienteId && p.Activo);
-                if (!pacienteActivo)
-                    throw new KeyNotFoundException($"Paciente {turnoFijo.PacienteId} no encontrado o está dado de baja.");
+                await _context.ValidarPacienteActivoAsync(turnoFijo.PacienteId);
+                await _context.ValidarVinculacionAsync(turnoFijo.PacienteId, turnoFijo.ProfesionalId);
             }
 
             _context.TurnosFijos.Update(turnoFijo);
@@ -37,10 +35,8 @@ namespace Repository.TurnosFijos
         public async Task Agregar(TurnoFijo turnoFijo)
         {
             ArgumentNullException.ThrowIfNull(turnoFijo, nameof(turnoFijo));
-            var pacienteActivo = await _context.Pacientes
-                .AnyAsync(p => p.Id == turnoFijo.PacienteId && p.Activo);
-            if (!pacienteActivo)
-                throw new KeyNotFoundException($"Paciente {turnoFijo.PacienteId} no encontrado o está dado de baja.");
+            await _context.ValidarPacienteActivoAsync(turnoFijo.PacienteId);
+            await _context.ValidarVinculacionAsync(turnoFijo.PacienteId, turnoFijo.ProfesionalId);
             await _context.TurnosFijos.AddAsync(turnoFijo);
         }
 
@@ -52,7 +48,8 @@ namespace Repository.TurnosFijos
         public async Task<List<TurnoFijo>> ObtenerActivos()
         {
             return await _context.TurnosFijos
-                .Where(t => t.Activo && t.Paciente.Activo)
+                .Where(t => t.Activo && t.Paciente.Activo &&
+                    _context.PacienteProfesionales.Any(pp => pp.PacienteId == t.PacienteId && pp.ProfesionalId == t.ProfesionalId))
                 .ToListAsync();
         }
 

@@ -13,7 +13,7 @@ namespace Repository.Profesionales
         Task<Profesional?> GetByMatriculaAsync(string matricula);
         Task<Profesional?> GetByRefreshTokenAsync(string refreshToken);
         Task VincularPacienteAsync(int profesionalId, int pacienteId);
-        Task<IEnumerable<Paciente>> GetPacientesVinculadosAsync(int profesionalId);
+        Task<bool> DesvincularPacienteAsync(int profesionalId, int pacienteId);
         Task GuardarCambios();
     }
 }
