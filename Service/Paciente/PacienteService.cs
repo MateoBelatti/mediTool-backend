@@ -192,9 +192,10 @@ namespace Service.Pacientes
                     throw new ValidationError("El DNI debe contener solo dígitos (7 u 8 caracteres).");
             }
 
-            if (dto.FechaNacimiento.HasValue)
+            DateOnly? fechaNacimiento = dto.FechaNacimiento;
+            if (fechaNacimiento.HasValue)
             {
-                var fechaNac = dto.FechaNacimiento.Value;
+                var fechaNac = fechaNacimiento.Value;
                 var today = DateOnly.FromDateTime(DateTime.UtcNow);
                 
                 if (fechaNac > today)

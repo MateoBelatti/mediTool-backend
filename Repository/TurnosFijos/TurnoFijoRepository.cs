@@ -48,7 +48,7 @@ namespace Repository.TurnosFijos
         public async Task<List<TurnoFijo>> ObtenerActivos()
         {
             return await _context.TurnosFijos
-                .Where(t => t.Activo && t.Paciente.Activo &&
+                .Where(t => t.Activo && t.Paciente != null && t.Paciente.Activo &&
                     _context.PacienteProfesionales.Any(pp => pp.PacienteId == t.PacienteId && pp.ProfesionalId == t.ProfesionalId))
                 .ToListAsync();
         }

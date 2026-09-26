@@ -4,7 +4,7 @@ namespace Utils.DTOs.Turno
 {
     public class CrearTurnoDto
     {
-        [Required]
+
         public int? TurnoFijoId { get; set; }
 
         [Required]
