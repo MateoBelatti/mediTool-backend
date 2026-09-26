@@ -1,5 +1,6 @@
 using AutoMapper;
 using Biblioteca.Entities;
+using Biblioteca.Repository;
 using Repository.Pacientes;
 using Repository.Profesionales;
 using Repository.Turnos;
@@ -45,6 +46,9 @@ namespace Service.Turnos
 
             if (await _profesionalRepository.GetByIdAsync(dto.ProfesionalId) == null)
                 throw new ValidationError($"El Profesional con Id {dto.ProfesionalId} no existe.");
+
+            if (!await _pacienteRepository.IsVinculadoAsync(dto.PacienteId, dto.ProfesionalId))
+                throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
 
             if (await _turnoRepository.ExisteSolapamiento(dto.ProfesionalId, dto.FechaHora, dto.DuracionMin))
             {

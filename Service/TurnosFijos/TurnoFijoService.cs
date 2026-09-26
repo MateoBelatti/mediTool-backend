@@ -1,5 +1,7 @@
 using AutoMapper;
 using Biblioteca.Entities;
+using Biblioteca.Repository;
+using Repository.Pacientes;
 using Repository.TurnosFijos;
 using Service.Turnos;
 using Utils.DTOs.TurnoFijo;
@@ -11,15 +13,18 @@ namespace Service.TurnosFijos
     {
         private readonly ITurnoFijoRepository _turnoFijoRepository;
         private readonly IGenerarInstanciasTurnoService _generarInstanciasService;
+        private readonly IPacienteRepository _pacienteRepository;
         private readonly IMapper _mapper;
 
         public TurnoFijoService(
             ITurnoFijoRepository turnoFijoRepository, 
             IGenerarInstanciasTurnoService generarInstanciasService,
+            IPacienteRepository pacienteRepository,
             IMapper mapper)
         {
             _turnoFijoRepository = turnoFijoRepository;
             _generarInstanciasService = generarInstanciasService;
+            _pacienteRepository = pacienteRepository;
             _mapper = mapper;
         }
 
@@ -27,6 +32,10 @@ namespace Service.TurnosFijos
         {
             var turnoFijo = _mapper.Map<TurnoFijo>(dto);
             ValidarReglas(turnoFijo);
+
+            if (!await _pacienteRepository.IsVinculadoAsync(turnoFijo.PacienteId, turnoFijo.ProfesionalId))
+                throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
+
             await _turnoFijoRepository.Agregar(turnoFijo);
             await _turnoFijoRepository.GuardarCambios();
             

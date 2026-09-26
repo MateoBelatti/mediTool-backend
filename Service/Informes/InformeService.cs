@@ -1,18 +1,23 @@
 using AutoMapper;
 using Biblioteca.Entities;
+using Biblioteca.Repository;
 using Repository.Informes;
+using Repository.Pacientes;
 using Utils.DTOs.Informe;
+using Utils.Exceptions;
 
 namespace Service.Informes
 {
     public class InformeService : IInformeService
     {
         private readonly IInformeRepository _informeRepository;
+        private readonly IPacienteRepository _pacienteRepository;
         private readonly IMapper _mapper;
 
-        public InformeService(IInformeRepository informeRepository, IMapper mapper)
+        public InformeService(IInformeRepository informeRepository, IPacienteRepository pacienteRepository, IMapper mapper)
         {
             _informeRepository = informeRepository;
+            _pacienteRepository = pacienteRepository;
             _mapper = mapper;
         }
 
@@ -38,6 +43,13 @@ namespace Service.Informes
         public async Task<InformeResponseDto> AddAsync(InformeCreateDto dto)
         {
             var informe = _mapper.Map<Informe>(dto);
+
+            if (informe.PacienteId.HasValue &&
+                !await _pacienteRepository.IsVinculadoAsync(informe.PacienteId.Value, informe.ProfesionalId))
+            {
+                throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
+            }
+
             var created = await _informeRepository.AddAsync(informe);
             await _informeRepository.GuardarCambios();
             return _mapper.Map<InformeResponseDto>(created);
@@ -47,6 +59,13 @@ namespace Service.Informes
         {
             var existing = await _informeRepository.GetByIdAsync(id);
             if (existing == null) return null;
+
+            if (dto.PacienteId.HasValue &&
+                (dto.PacienteId != existing.PacienteId || dto.ProfesionalId != existing.ProfesionalId) &&
+                !await _pacienteRepository.IsVinculadoAsync(dto.PacienteId.Value, dto.ProfesionalId))
+            {
+                throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
+            }
 
             _mapper.Map(dto, existing);
             var updated = await _informeRepository.UpdateAsync(existing);

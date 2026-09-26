@@ -109,10 +109,14 @@ namespace Service.Profesionales
             await _repository.GuardarCambios();
         }
 
-        public async Task<IEnumerable<Utils.DTOs.Paciente.PacienteResponseDto>> GetPacientesVinculadosAsync(int profesionalId)
+        public async Task<bool> DesvincularPacienteAsync(int profesionalId, int pacienteId)
         {
-            var result = await _repository.GetPacientesVinculadosAsync(profesionalId);
-            return _mapper.Map<IEnumerable<Utils.DTOs.Paciente.PacienteResponseDto>>(result);
+            var desvinculado = await _repository.DesvincularPacienteAsync(profesionalId, pacienteId);
+            if (!desvinculado)
+                return false;
+
+            await _repository.GuardarCambios();
+            return true;
         }
     }
 }

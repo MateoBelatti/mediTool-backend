@@ -83,5 +83,19 @@ namespace mediTool.Controllers
             await _profesionalService.VincularPacienteAsync(id, pacienteId);
             return Ok();
         }
+
+        [Authorize(Policy = "Admin")]
+        [HttpDelete("{id}/pacientes/{pacienteId}")]
+        public async Task<IActionResult> DesvincularPaciente(int id, int pacienteId)
+        {
+            User.EnsureOwnership(id);
+            var success = await _profesionalService.DesvincularPacienteAsync(id, pacienteId);
+            if (!success)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }
