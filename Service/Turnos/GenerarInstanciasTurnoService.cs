@@ -71,7 +71,7 @@ namespace Service.Turnos
 
         public async Task ActualizarInstanciasFuturas(TurnoFijo reglaActualizada)
         {
-            var ahora = DateTime.Now;
+            var ahora = DateTime.UtcNow;
             var futuros = await _turnoRepository.ObtenerFuturosPorTurnoFijo(reglaActualizada.Id, ahora);
 
             foreach (var turno in futuros)
@@ -97,7 +97,7 @@ namespace Service.Turnos
         }
         public async Task CancelarInstanciasFuturas(int turnoFijoId)
         {
-            var ahora = DateTime.Now;
+            var ahora = DateTime.UtcNow;
             var futuros = await _turnoRepository.ObtenerFuturosPorTurnoFijo(turnoFijoId, ahora);
 
             foreach (var turno in futuros)
