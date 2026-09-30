@@ -112,6 +112,9 @@ namespace Service.Turnos
             if (turno == null)
                 throw new NotFoundError($"Turno {turnoId} no encontrado");
 
+            if (turno.Estado != EstadoTurno.Pendiente.ToString() && turno.Estado != EstadoTurno.Reprogramado.ToString())
+                throw new ConflictError($"No se puede reprogramar el turno {turnoId} porque está en estado {turno.Estado}.");
+
             if (await _turnoRepository.ExisteSolapamiento(turno.ProfesionalId, nuevaFechaHora, turno.DuracionMin, turnoId))
             {
                 throw new ConflictError("Ya existe un turno para este profesional en el nuevo horario.");
