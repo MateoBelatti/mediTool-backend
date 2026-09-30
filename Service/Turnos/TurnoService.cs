@@ -68,6 +68,10 @@ namespace Service.Turnos
 
         public async Task<TurnoResponseDto> CrearSuelto(CrearTurnoDto dto)
         {
+            var fechaHoraUtc = dto.FechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(dto.FechaHora, DateTimeKind.Utc) : dto.FechaHora.ToUniversalTime();
+            if (fechaHoraUtc < DateTime.UtcNow)
+                throw new ValidationError("No se puede crear un turno con fecha pasada.");
+
             if (await _pacienteRepository.GetByIdAsync(dto.PacienteId) == null)
                 throw new ValidationError($"El Paciente con Id {dto.PacienteId} no existe.");
 
