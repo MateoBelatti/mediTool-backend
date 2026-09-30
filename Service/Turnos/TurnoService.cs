@@ -16,6 +16,16 @@ namespace Service.Turnos
         private readonly IProfesionalRepository _profesionalRepository;
         private readonly IMapper _mapper;
 
+        private static readonly IReadOnlyDictionary<EstadoTurno, EstadoTurno[]> TransicionesPermitidas =
+            new Dictionary<EstadoTurno, EstadoTurno[]>
+            {
+                [EstadoTurno.Pendiente] = [EstadoTurno.Cancelado, EstadoTurno.Reprogramado],
+                [EstadoTurno.Reprogramado] = [EstadoTurno.Cancelado, EstadoTurno.Reprogramado],
+                [EstadoTurno.Presente] = [],
+                [EstadoTurno.Ausente] = [],
+                [EstadoTurno.Cancelado] = []
+            };
+
         public TurnoService(
             ITurnoRepository turnoRepository,
             IPacienteRepository pacienteRepository,
@@ -34,9 +44,26 @@ namespace Service.Turnos
             if (turno == null)
                 throw new NotFoundError($"Turno {turnoId} no encontrado");
 
+            ValidarTransicion(turnoId, turno.Estado, nuevoEstado);
+
             turno.Estado = nuevoEstado.ToString();
             await _turnoRepository.Actualizar(turno);
             await _turnoRepository.GuardarCambios();
+        }
+
+        private static void ValidarTransicion(int turnoId, string? estadoActual, EstadoTurno nuevoEstado)
+        {
+            var estadoOrigen = Enum.TryParse<EstadoTurno>(estadoActual, true, out var origen)
+                && Enum.IsDefined(origen)
+                    ? origen
+                    : (EstadoTurno?)null;
+
+            if (estadoOrigen is null
+                || !TransicionesPermitidas.TryGetValue(estadoOrigen.Value, out var permitidos)
+                || !permitidos.Contains(nuevoEstado))
+            {
+                throw new ConflictError($"No se puede cambiar el turno {turnoId} de estado {estadoActual} a {nuevoEstado}.");
+            }
         }
 
         public async Task<TurnoResponseDto> CrearSuelto(CrearTurnoDto dto)
