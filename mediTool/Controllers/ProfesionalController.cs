@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Service.Profesionales;
+using Service.Turnos;
 using Utils.DTOs.Profesional;
 using Utils.Helpers;
 
@@ -12,10 +13,12 @@ namespace mediTool.Controllers
     public class ProfesionalController : ControllerBase
     {
         private readonly IProfesionalService _profesionalService;
+        private readonly ITurnoService _turnoService;
 
-        public ProfesionalController(IProfesionalService profesionalService)
+        public ProfesionalController(IProfesionalService profesionalService, ITurnoService turnoService)
         {
             _profesionalService = profesionalService;
+            _turnoService = turnoService;
         }
 
         [HttpGet("{id}")]
@@ -97,6 +100,14 @@ namespace mediTool.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("{id}/agenda")]
+        public async Task<IActionResult> GetAgenda(int id, [FromQuery] DateTime desde, [FromQuery] DateTime hasta)
+        {
+            User.EnsureOwnership(id);
+            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, id);
+            return Ok(turnos);
         }
     }
 }

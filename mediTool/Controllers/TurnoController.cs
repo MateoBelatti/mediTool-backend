@@ -26,18 +26,6 @@ namespace mediTool.Controllers
             _generarInstanciasService = generarInstanciasService;
         }
 
-        [HttpGet("agenda")]
-        public async Task<IActionResult> GetAgenda([FromQuery] DateTime desde, [FromQuery] DateTime hasta, [FromQuery] int? profesionalId)
-        {
-            if (profesionalId.HasValue)
-                User.EnsureOwnership(profesionalId.Value);
-            else if (!User.IsAdmin())
-                profesionalId = User.GetUserId();
-
-            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, profesionalId);
-            return Ok(turnos);
-        }
-
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
