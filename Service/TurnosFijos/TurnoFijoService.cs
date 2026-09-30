@@ -11,6 +11,8 @@ namespace Service.TurnosFijos
 {
     public class TurnoFijoService : ITurnoFijoService
     {
+        private const int HorizonteMesesPorDefecto = 3;
+
         private readonly ITurnoFijoRepository _turnoFijoRepository;
         private readonly IGenerarInstanciasTurnoService _generarInstanciasService;
         private readonly IPacienteRepository _pacienteRepository;
@@ -31,6 +33,7 @@ namespace Service.TurnosFijos
         public async Task<TurnoFijoResponseDto> Crear(CrearTurnoFijoDto dto)
         {
             var turnoFijo = _mapper.Map<TurnoFijo>(dto);
+            ValidarHorizonte(dto);
             ValidarReglas(turnoFijo);
 
             if (!await _pacienteRepository.IsVinculadoAsync(turnoFijo.PacienteId, turnoFijo.ProfesionalId))
@@ -38,9 +41,10 @@ namespace Service.TurnosFijos
 
             await _turnoFijoRepository.Agregar(turnoFijo);
             await _turnoFijoRepository.GuardarCambios();
-            
-            // Generar instancias para los próximos 3 meses
-            await _generarInstanciasService.GenerarInstancias(turnoFijo, DateTime.Now.AddMonths(3));
+
+            var meses = dto.HorizonteMeses ?? HorizonteMesesPorDefecto;
+            var generarHasta = DateTime.UtcNow.AddMonths(meses);
+            await _generarInstanciasService.GenerarInstancias(turnoFijo, generarHasta);
             
             return _mapper.Map<TurnoFijoResponseDto>(turnoFijo);
         }
@@ -102,6 +106,13 @@ namespace Service.TurnosFijos
             if (turnoFijo.FechaFin.HasValue && turnoFijo.FechaInicio > turnoFijo.FechaFin.Value)
                 throw new ValidationError(
                     $"La FechaInicio ({turnoFijo.FechaInicio}) debe ser menor o igual a la FechaFin ({turnoFijo.FechaFin.Value}).");
+        }
+
+        private static void ValidarHorizonte(CrearTurnoFijoDto dto)
+        {
+            if (dto.HorizonteMeses.HasValue && dto.HorizonteMeses.Value <= 0)
+                throw new ValidationError(
+                    $"El HorizonteMeses debe ser mayor a 0. Valor recibido: {dto.HorizonteMeses.Value}.");
         }
     }
 }

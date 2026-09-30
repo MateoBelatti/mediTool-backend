@@ -10,5 +10,6 @@ namespace Utils.DTOs.TurnoFijo
         public DateOnly FechaInicio { get; set; }
         public DateOnly? FechaFin { get; set; }
         public bool Activo { get; set; } = true;
+        public int? HorizonteMeses { get; set; }
     }
 }
