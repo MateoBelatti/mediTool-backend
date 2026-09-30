@@ -5,7 +5,7 @@ namespace Repository.Turnos
     public interface ITurnoRepository
     {
         Task<Turno?> ObtenerPorId(int id);
-        Task<List<Turno>> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int? profesionalId = null);
+        Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null);
         Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta);
         Task<Turno?> ObtenerUltimoPorTurnoFijo(int turnoFijoId);
         Task<List<Turno>> ObtenerFuturosPorTurnoFijo(int turnoFijoId, DateTime desde);

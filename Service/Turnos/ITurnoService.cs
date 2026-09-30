@@ -1,3 +1,4 @@
+using Utils.DTOs.Comun;
 using Utils.DTOs.Turno;
 
 namespace Service.Turnos
@@ -6,7 +7,7 @@ namespace Service.Turnos
     {
         Task<TurnoResponseDto> CrearSuelto(CrearTurnoDto dto);
         Task<TurnoResponseDto> ObtenerPorId(int id);
-        Task<List<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int? profesionalId);
+        Task<PageResult<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId);
         Task CambiarEstado(int turnoId, EstadoTurno nuevoEstado);
         Task Reprogramar(int turnoId, DateTime nuevaFechaHora);
         Task<TurnoResponseDto> RegistrarAsistencia(int turnoId, bool asistio, bool? justificada, string? observaciones);

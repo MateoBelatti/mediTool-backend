@@ -92,8 +92,13 @@ namespace Repository.Turnos
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<List<Turno>> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int? profesionalId = null)
+        public async Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null)
         {
+            if (page < 1)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
+            if (pageSize < 1 || pageSize > 100)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "El tamaño de página debe estar entre 1 y 100.");
+
             desde = ToUtc(desde);
             hasta = ToUtc(hasta);
             var query = _context.Turnos
@@ -106,7 +111,19 @@ namespace Repository.Turnos
                 query = query.Where(t => t.ProfesionalId == profesionalId.Value);
             }
 
-            return await query.OrderBy(t => t.FechaHora).ToListAsync();
+            var skip = (long)(page - 1) * pageSize;
+            if (skip > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página solicitada es demasiado grande.");
+
+            var totalItems = await query.CountAsync();
+            var items = await query
+                .OrderBy(t => t.FechaHora)
+                .ThenBy(t => t.Id)
+                .Skip((int)skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalItems);
         }
 
         public async Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta)

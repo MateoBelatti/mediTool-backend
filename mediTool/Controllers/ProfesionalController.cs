@@ -103,10 +103,10 @@ namespace mediTool.Controllers
         }
 
         [HttpGet("{id}/agenda")]
-        public async Task<IActionResult> GetAgenda(int id, [FromQuery] DateTime desde, [FromQuery] DateTime hasta)
+        public async Task<IActionResult> GetAgenda(int id, [FromQuery] DateTime desde, [FromQuery] DateTime hasta, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             User.EnsureOwnership(id);
-            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, id);
+            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, page, pageSize, id);
             return Ok(turnos);
         }
     }

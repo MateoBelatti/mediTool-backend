@@ -4,6 +4,7 @@ using Biblioteca.Repository;
 using Repository.Pacientes;
 using Repository.Profesionales;
 using Repository.Turnos;
+using Utils.DTOs.Comun;
 using Utils.DTOs.Turno;
 using Utils.Exceptions;
 
@@ -11,6 +12,8 @@ namespace Service.Turnos
 {
     public class TurnoService : ITurnoService
     {
+        private const int MaxPageSize = 100;
+
         private readonly ITurnoRepository _turnoRepository;
         private readonly IPacienteRepository _pacienteRepository;
         private readonly IProfesionalRepository _profesionalRepository;
@@ -66,6 +69,15 @@ namespace Service.Turnos
             }
         }
 
+        private static void ValidatePagination(int page, int pageSize)
+        {
+            if (page < 1)
+                throw new ValidationError("La página debe ser mayor o igual que 1.");
+
+            if (pageSize < 1 || pageSize > MaxPageSize)
+                throw new ValidationError($"El tamaño de página debe estar entre 1 y {MaxPageSize}.");
+        }
+
         public async Task<TurnoResponseDto> CrearSuelto(CrearTurnoDto dto)
         {
             var fechaHoraUtc = dto.FechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(dto.FechaHora, DateTimeKind.Utc) : dto.FechaHora.ToUniversalTime();
@@ -95,10 +107,22 @@ namespace Service.Turnos
             return _mapper.Map<TurnoResponseDto>(turno);
         }
 
-        public async Task<List<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int? profesionalId)
+        public async Task<PageResult<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId)
         {
-            var turnos = await _turnoRepository.ObtenerPorRangoFecha(desde, hasta, profesionalId);
-            return _mapper.Map<List<TurnoResponseDto>>(turnos);
+            ValidatePagination(page, pageSize);
+
+            var result = await _turnoRepository.ObtenerPorRangoFecha(desde, hasta, page, pageSize, profesionalId);
+            var items = _mapper.Map<IEnumerable<TurnoResponseDto>>(result.Items).ToList();
+            var totalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+            return new PageResult<TurnoResponseDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = result.TotalItems,
+                TotalPages = totalPages
+            };
         }
 
         public async Task<TurnoResponseDto> ObtenerPorId(int id)
