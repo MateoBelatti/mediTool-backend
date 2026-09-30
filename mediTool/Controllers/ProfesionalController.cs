@@ -33,6 +33,7 @@ namespace mediTool.Controllers
             return Ok(profesional);
         }
 
+        [Authorize(Policy = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ProfesionalCreateDto dto)
         {
