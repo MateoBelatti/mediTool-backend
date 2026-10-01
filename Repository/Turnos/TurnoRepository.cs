@@ -96,8 +96,8 @@ namespace Repository.Turnos
         {
             if (page < 1)
                 throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
-            if (pageSize < 1 || pageSize > 100)
-                throw new ArgumentOutOfRangeException(nameof(pageSize), "El tamaño de página debe estar entre 1 y 100.");
+            if (pageSize < 1 || pageSize > 1000)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "El tamaño de página debe estar entre 1 y 1000.");
 
             desde = ToUtc(desde);
             hasta = ToUtc(hasta);

@@ -12,7 +12,7 @@ namespace Service.Turnos
 {
     public class TurnoService : ITurnoService
     {
-        private const int MaxPageSize = 100;
+        private const int MaxPageSize = 1000;
 
         private readonly ITurnoRepository _turnoRepository;
         private readonly IPacienteRepository _pacienteRepository;
