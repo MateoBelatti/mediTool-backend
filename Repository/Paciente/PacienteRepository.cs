@@ -84,6 +84,17 @@ namespace Repository.Pacientes
             await _context.VincularAsync(pacienteId, profesionalId);
         }
 
+        public async Task<IEnumerable<Profesional>> GetProfesionalesVinculadosAsync(int pacienteId)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+
+            return await _context.PacienteProfesionales
+                .Where(pp => pp.PacienteId == pacienteId)
+                .Select(pp => pp.Profesional)
+                .ToListAsync();
+        }
+
         public async Task<Paciente> AddAsync(Paciente entity)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));

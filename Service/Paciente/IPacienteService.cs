@@ -12,6 +12,7 @@ namespace Service.Pacientes
         Task<bool> DeleteAsync(int id);
         Task<PacienteResponseDto?> GetByIdAsync(int id);
         Task<bool> IsVinculadoAsync(int pacienteId, int profesionalId);
+        Task<IEnumerable<Utils.DTOs.Profesional.ProfesionalResponseDto>> GetProfesionalesVinculadosAsync(int pacienteId);
         Task<PacienteResponseDto?> GetByDniAsync(string dni);
         Task<PacienteResponseDto?> GetByEmailAsync(string email);
         Task<IEnumerable<PacienteResponseDto>> GetByObraSocialAsync(string obraSocial);

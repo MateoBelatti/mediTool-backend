@@ -118,5 +118,11 @@ namespace Service.Profesionales
             await _repository.GuardarCambios();
             return true;
         }
+
+        public async Task<IEnumerable<ProfesionalResponseDto>> GetAllAsync()
+        {
+            var result = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ProfesionalResponseDto>>(result);
+        }
     }
 }

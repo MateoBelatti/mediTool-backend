@@ -21,6 +21,14 @@ namespace mediTool.Controllers
             _turnoService = turnoService;
         }
 
+        [Authorize(Policy = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var profesionales = await _profesionalService.GetAllAsync();
+            return Ok(profesionales);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -88,7 +96,6 @@ namespace mediTool.Controllers
             return Ok();
         }
 
-        [Authorize(Policy = "Admin")]
         [HttpDelete("{id}/pacientes/{pacienteId}")]
         public async Task<IActionResult> DesvincularPaciente(int id, int pacienteId)
         {

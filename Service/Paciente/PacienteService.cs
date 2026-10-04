@@ -142,6 +142,12 @@ namespace Service.Pacientes
             return await _repository.IsVinculadoAsync(pacienteId, profesionalId);
         }
 
+        public async Task<IEnumerable<Utils.DTOs.Profesional.ProfesionalResponseDto>> GetProfesionalesVinculadosAsync(int pacienteId)
+        {
+            var result = await _repository.GetProfesionalesVinculadosAsync(pacienteId);
+            return _mapper.Map<IEnumerable<Utils.DTOs.Profesional.ProfesionalResponseDto>>(result);
+        }
+
         public async Task<PacienteResponseDto?> GetByDniAsync(string dni)
         {
             if (string.IsNullOrWhiteSpace(dni))

@@ -34,6 +34,14 @@ namespace mediTool.Controllers
             return Ok(pacientes);
         }
 
+        [Authorize(Policy = "Admin")]
+        [HttpGet("{id}/profesionales")]
+        public async Task<IActionResult> GetProfesionalesVinculados(int id)
+        {
+            var profesionales = await _pacienteService.GetProfesionalesVinculadosAsync(id);
+            return Ok(profesionales);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

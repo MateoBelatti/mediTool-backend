@@ -13,5 +13,6 @@ namespace Service.Profesionales
         Task<ProfesionalResponseDto?> GetByMatriculaAsync(string matricula);
         Task VincularPacienteAsync(int profesionalId, int pacienteId);
         Task<bool> DesvincularPacienteAsync(int profesionalId, int pacienteId);
+        Task<IEnumerable<ProfesionalResponseDto>> GetAllAsync();
     }
 }

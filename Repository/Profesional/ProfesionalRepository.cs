@@ -96,5 +96,10 @@ namespace Repository.Profesionales
             _context.PacienteProfesionales.Remove(vinculacion);
             return true;
         }
+
+        public async Task<IEnumerable<Profesional>> GetAllAsync()
+        {
+            return await _context.Profesionales.ToListAsync();
+        }
     }
 }
