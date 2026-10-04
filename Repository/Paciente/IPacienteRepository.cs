@@ -6,7 +6,7 @@ namespace Repository.Pacientes
     {
         Task<IEnumerable<Paciente>> GetAllAsync();
         Task<IEnumerable<Paciente>> GetAllVinculadosAsync(int profesionalId);
-        Task<(IEnumerable<Paciente> Items, int TotalItems)> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null);
+        Task<(IEnumerable<Paciente> Items, int TotalItems)> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null, string? searchTerm = null, string? sortBy = "nombre", string? sortOrder = "asc");
         Task<bool> IsVinculadoAsync(int pacienteId, int profesionalId);
         Task<IEnumerable<Profesional>> GetProfesionalesVinculadosAsync(int pacienteId);
         Task VincularAsync(int pacienteId, int profesionalId);

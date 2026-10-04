@@ -21,16 +21,16 @@ namespace mediTool.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? searchTerm = null, [FromQuery] string? sortBy = "nombre", [FromQuery] string? sortOrder = "asc")
         {
-            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize);
+            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize, null, searchTerm, sortBy, sortOrder);
             return Ok(pacientes);
         }
 
         [HttpGet("vinculados")]
-        public async Task<IActionResult> GetVinculados([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetVinculados([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? searchTerm = null, [FromQuery] string? sortBy = "nombre", [FromQuery] string? sortOrder = "asc")
         {
-            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize, User.GetUserId());
+            var pacientes = await _pacienteService.GetAllPagedAsync(page, pageSize, User.GetUserId(), searchTerm, sortBy, sortOrder);
             return Ok(pacientes);
         }
 

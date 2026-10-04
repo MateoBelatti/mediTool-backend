@@ -31,11 +31,11 @@ namespace Service.Pacientes
             return _mapper.Map<IEnumerable<PacienteResponseDto>>(result);
         }
 
-        public async Task<PageResult<PacienteResponseDto>> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null)
+        public async Task<PageResult<PacienteResponseDto>> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null, string? searchTerm = null, string? sortBy = "nombre", string? sortOrder = "asc")
         {
             ValidatePagination(page, pageSize);
 
-            var result = await _repository.GetAllPagedAsync(page, pageSize, profesionalId);
+            var result = await _repository.GetAllPagedAsync(page, pageSize, profesionalId, searchTerm, sortBy, sortOrder);
             var items = _mapper.Map<IEnumerable<PacienteResponseDto>>(result.Items).ToList();
             var totalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 

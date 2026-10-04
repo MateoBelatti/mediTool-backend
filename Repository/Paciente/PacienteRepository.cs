@@ -37,7 +37,7 @@ namespace Repository.Pacientes
                 .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Paciente> Items, int TotalItems)> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null)
+        public async Task<(IEnumerable<Paciente> Items, int TotalItems)> GetAllPagedAsync(int page, int pageSize, int? profesionalId = null, string? searchTerm = null, string? sortBy = "nombre", string? sortOrder = "asc")
         {
             if (page < 1)
                 throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
@@ -54,15 +54,32 @@ namespace Repository.Pacientes
                     .Select(pp => pp.Paciente);
             }
 
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim().ToLower();
+                query = query.Where(p => 
+                    p.Nombre.ToLower().Contains(term) || 
+                    p.Apellido.ToLower().Contains(term) || 
+                    (p.Dni != null && p.Dni.Contains(term)) || 
+                    (p.ObraSocial != null && p.ObraSocial.ToLower().Contains(term)));
+            }
+
             var skip = (long)(page - 1) * pageSize;
             if (skip > int.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(page), "La página solicitada es demasiado grande.");
 
             var totalItems = await query.CountAsync();
+
+            bool isDesc = sortOrder?.ToLower() == "desc";
+            query = sortBy?.ToLower() switch
+            {
+                "apellido" => isDesc ? query.OrderByDescending(p => p.Apellido).ThenByDescending(p => p.Nombre).ThenBy(p => p.Id) : query.OrderBy(p => p.Apellido).ThenBy(p => p.Nombre).ThenBy(p => p.Id),
+                "dni" => isDesc ? query.OrderByDescending(p => p.Dni).ThenBy(p => p.Id) : query.OrderBy(p => p.Dni).ThenBy(p => p.Id),
+                "obrasocial" => isDesc ? query.OrderByDescending(p => p.ObraSocial).ThenBy(p => p.Id) : query.OrderBy(p => p.ObraSocial).ThenBy(p => p.Id),
+                _ => isDesc ? query.OrderByDescending(p => p.Nombre).ThenByDescending(p => p.Apellido).ThenBy(p => p.Id) : query.OrderBy(p => p.Nombre).ThenBy(p => p.Apellido).ThenBy(p => p.Id)
+            };
+
             var items = await query
-                .OrderBy(p => p.Apellido)
-                .ThenBy(p => p.Nombre)
-                .ThenBy(p => p.Id)
                 .Skip((int)skip)
                 .Take(pageSize)
                 .ToListAsync();
