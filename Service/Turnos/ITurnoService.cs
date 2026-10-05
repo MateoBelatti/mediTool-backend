@@ -14,5 +14,6 @@ namespace Service.Turnos
         Task<TurnoResponseDto> ActualizarAsistencia(int turnoId, ActualizarAsistenciaDto dto);
         Task<List<TurnoResponseDto>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta);
         Task<ResumenAsistenciaDto> ObtenerResumenPorTurnoFijo(int turnoFijoId);
+        Task<List<TurnoResponseDto>> ObtenerHistorialPorTurnoFijo(int turnoFijoId);
     }
 }

@@ -66,6 +66,19 @@ namespace Repository.Turnos
                 t.FechaHora.AddMinutes(t.DuracionMin) > fechaHora);
         }
 
+                public async Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId)
+        {
+            if (turnoFijoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoFijoId), "El id debe ser mayor que 0.");
+            
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .Where(t => t.TurnoFijoId == turnoFijoId)
+                .OrderByDescending(t => t.FechaHora)
+                .ToListAsync();
+        }
+
         public async Task GuardarCambios()
         {
             await _context.SaveChangesAsync();

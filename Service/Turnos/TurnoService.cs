@@ -201,6 +201,12 @@ namespace Service.Turnos
             return _mapper.Map<List<TurnoResponseDto>>(turnos);
         }
 
+        public async Task<List<TurnoResponseDto>> ObtenerHistorialPorTurnoFijo(int turnoFijoId)
+        {
+            var turnos = await _turnoRepository.ObtenerTodosPorTurnoFijo(turnoFijoId);
+            return _mapper.Map<List<TurnoResponseDto>>(turnos);
+        }
+
         public async Task<ResumenAsistenciaDto> ObtenerResumenPorTurnoFijo(int turnoFijoId)
         {
             var turnos = await _turnoRepository.ObtenerFuturosPorTurnoFijo(turnoFijoId, DateTime.MinValue);

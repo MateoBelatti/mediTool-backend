@@ -81,6 +81,18 @@ namespace mediTool.Controllers
             return Ok(result);
         }
 
+        [HttpGet("turnofijo/{turnoFijoId}/historial")]
+        public async Task<IActionResult> GetHistorialPorTurnoFijo(int turnoFijoId)
+        {
+            var turnoFijo = await _turnoFijoService.ObtenerPorId(turnoFijoId);
+            if (turnoFijo == null) return NotFound();
+
+            User.EnsureOwnership(turnoFijo.ProfesionalId);
+
+            var turnos = await _turnoService.ObtenerHistorialPorTurnoFijo(turnoFijoId);
+            return Ok(turnos);
+        }
+
         [HttpGet("turnofijo/{turnoFijoId}/resumen-asistencia")]
         public async Task<IActionResult> GetResumenAsistencia(int turnoFijoId)
         {

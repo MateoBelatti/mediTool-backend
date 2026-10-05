@@ -8,6 +8,7 @@ namespace Repository.Turnos
         Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null);
         Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta);
         Task<Turno?> ObtenerUltimoPorTurnoFijo(int turnoFijoId);
+        Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId);
         Task<List<Turno>> ObtenerFuturosPorTurnoFijo(int turnoFijoId, DateTime desde);
         Task<bool> ExisteSolapamiento(int profesionalId, DateTime fechaHora, int duracionMin, int? excluirTurnoId = null);
         Task Agregar(Turno turno);
