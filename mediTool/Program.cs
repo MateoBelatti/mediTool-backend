@@ -97,6 +97,9 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.Migrate();
+
+    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    mediTool.Seeders.AdminSeeder.SeedAdmin(dbContext, configuration);
 }
 
 // Configure the HTTP request pipeline.
