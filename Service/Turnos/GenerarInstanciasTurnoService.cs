@@ -84,7 +84,7 @@ namespace Service.Turnos
 
             foreach (var turno in futuros)
             {
-                if (turno.Estado == "Cancelado") continue;
+                if (turno.Estado != "Pendiente") continue;
 
                 var dateOnly = DateOnly.FromDateTime(DateTimeHelper.UtcALocal(turno.FechaHora));
                 
