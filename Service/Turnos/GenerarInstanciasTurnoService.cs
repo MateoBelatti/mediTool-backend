@@ -1,4 +1,5 @@
 using Biblioteca.Entities;
+using Microsoft.Extensions.Logging;
 using Repository.Turnos;
 using Repository.TurnosFijos;
 using Utils.Exceptions;
@@ -10,16 +11,19 @@ namespace Service.Turnos
     {
         private readonly ITurnoFijoRepository _turnoFijoRepository;
         private readonly ITurnoRepository _turnoRepository;
+        private readonly ILogger<GenerarInstanciasTurnoService> _logger;
 
         public GenerarInstanciasTurnoService(
             ITurnoFijoRepository turnoFijoRepository,
-            ITurnoRepository turnoRepository)
+            ITurnoRepository turnoRepository,
+            ILogger<GenerarInstanciasTurnoService> logger)
         {
             _turnoFijoRepository = turnoFijoRepository;
             _turnoRepository = turnoRepository;
+            _logger = logger;
         }
 
-        public async Task GenerarInstancias(TurnoFijo regla, DateTime hastaFecha)
+        public async Task<int> GenerarInstancias(TurnoFijo regla, DateTime hastaFecha)
         {
             var ultimo = await _turnoRepository.ObtenerUltimoPorTurnoFijo(regla.Id);
             var fechaActual = ultimo != null
@@ -74,6 +78,8 @@ namespace Service.Turnos
                 await _turnoRepository.Agregar(t);
             }
             await _turnoRepository.GuardarCambios();
+
+            return turnosGenerados.Count;
         }
 
         private static bool SolapaConLote(TurnoFijo regla, DateTime fechaHora, List<Turno> generados)
@@ -90,7 +96,15 @@ namespace Service.Turnos
             var activas = await _turnoFijoRepository.ObtenerActivos();
             foreach (var regla in activas)
             {
-                await GenerarInstancias(regla, hastaFecha);
+                try
+                {
+                    await GenerarInstancias(regla, hastaFecha);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "No se pudieron generar las instancias del turno fijo {TurnoFijoId}.", regla.Id);
+                }
             }
         }
 
