@@ -1,6 +1,7 @@
 using Biblioteca.Entities;
 using Repository.Turnos;
 using Repository.TurnosFijos;
+using Utils.Exceptions;
 using Utils.Helpers;
 
 namespace Service.Turnos
@@ -44,14 +45,21 @@ namespace Service.Turnos
             var turnosGenerados = new List<Turno>();
             while (fechaActual.ToDateTime(TimeOnly.MinValue) <= limite)
             {
-                var fechaHora = DateTimeHelper.LocalAUtc(fechaActual, regla.Hora);
-                
+                var fechaHoraUtc = DateTimeHelper.LocalAUtc(fechaActual, regla.Hora);
+
+                if (SolapaConLote(regla, fechaHoraUtc, turnosGenerados) ||
+                    await _turnoRepository.ExisteSolapamiento(regla.ProfesionalId, fechaHoraUtc, regla.DuracionMin))
+                {
+                    throw new ConflictError(
+                        $"La regla se solapa con otro turno del profesional {regla.ProfesionalId} el {fechaActual:yyyy-MM-dd} a las {regla.Hora}.");
+                }
+
                 var turno = new Turno
                 {
                     TurnoFijoId = regla.Id,
                     PacienteId = regla.PacienteId,
                     ProfesionalId = regla.ProfesionalId,
-                    FechaHora = fechaHora,
+                    FechaHora = fechaHoraUtc,
                     DuracionMin = regla.DuracionMin,
                     Estado = "Pendiente",
                     FechaRegistro = DateTime.UtcNow
@@ -66,6 +74,15 @@ namespace Service.Turnos
                 await _turnoRepository.Agregar(t);
             }
             await _turnoRepository.GuardarCambios();
+        }
+
+        private static bool SolapaConLote(TurnoFijo regla, DateTime fechaHora, List<Turno> generados)
+        {
+            var fin = fechaHora.AddMinutes(regla.DuracionMin);
+            return generados.Any(t =>
+                t.ProfesionalId == regla.ProfesionalId &&
+                t.FechaHora < fin &&
+                t.FechaHora.AddMinutes(t.DuracionMin) > fechaHora);
         }
 
         public async Task GenerarParaTodasLasReglasActivas(DateTime hastaFecha)
