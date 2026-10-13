@@ -1,6 +1,7 @@
 using Biblioteca.Entities;
 using Repository.Turnos;
 using Repository.TurnosFijos;
+using Utils.Helpers;
 
 namespace Service.Turnos
 {
@@ -21,7 +22,7 @@ namespace Service.Turnos
         {
             var ultimo = await _turnoRepository.ObtenerUltimoPorTurnoFijo(regla.Id);
             var fechaActual = ultimo != null
-                ? DateOnly.FromDateTime(ultimo.FechaHora).AddDays(7)
+                ? DateOnly.FromDateTime(DateTimeHelper.UtcALocal(ultimo.FechaHora)).AddDays(7)
                 : regla.FechaInicio;
             var limite = regla.FechaFin.HasValue && regla.FechaFin.Value < DateOnly.FromDateTime(hastaFecha)
                 ? regla.FechaFin.Value.ToDateTime(TimeOnly.MinValue)
@@ -36,7 +37,7 @@ namespace Service.Turnos
             var turnosGenerados = new List<Turno>();
             while (fechaActual.ToDateTime(TimeOnly.MinValue) <= limite)
             {
-                var fechaHora = DateTime.SpecifyKind(fechaActual.ToDateTime(TimeOnly.FromTimeSpan(regla.Hora)), DateTimeKind.Utc);
+                var fechaHora = DateTimeHelper.LocalAUtc(fechaActual, regla.Hora);
                 
                 var turno = new Turno
                 {
@@ -76,7 +77,7 @@ namespace Service.Turnos
 
             foreach (var turno in futuros)
             {
-                var dateOnly = DateOnly.FromDateTime(turno.FechaHora);
+                var dateOnly = DateOnly.FromDateTime(DateTimeHelper.UtcALocal(turno.FechaHora));
                 
                 // Si cambiaron de dia de la semana, movemos la fecha
                 if ((int)dateOnly.DayOfWeek != reglaActualizada.DiaSemana)
@@ -86,9 +87,7 @@ namespace Service.Turnos
                     dateOnly = dateOnly.AddDays(diff);
                 }
 
-                var newTime = TimeOnly.FromTimeSpan(reglaActualizada.Hora);
-                
-                turno.FechaHora = DateTime.SpecifyKind(dateOnly.ToDateTime(newTime), DateTimeKind.Utc);
+                turno.FechaHora = DateTimeHelper.LocalAUtc(dateOnly, reglaActualizada.Hora);
                 turno.DuracionMin = reglaActualizada.DuracionMin;
             }
 

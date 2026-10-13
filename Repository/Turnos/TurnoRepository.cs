@@ -1,6 +1,7 @@
 using Biblioteca.Entities;
 using Biblioteca.Repository;
 using Microsoft.EntityFrameworkCore;
+using Utils.Helpers;
 
 namespace Repository.Turnos
 {
@@ -15,7 +16,7 @@ namespace Repository.Turnos
 
         private DateTime ToUtc(DateTime date)
         {
-            return date.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : date.ToUniversalTime();
+            return DateTimeHelper.NormalizarAUtc(date);
         }
 
         public async Task Actualizar(Turno turno)
