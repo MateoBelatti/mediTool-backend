@@ -34,6 +34,13 @@ namespace Service.Turnos
                 fechaActual = fechaActual.AddDays(1);
             }
 
+            // Saltar las ocurrencias que ya quedaron en el pasado
+            var ahora = DateTime.UtcNow;
+            while (DateTimeHelper.LocalAUtc(fechaActual, regla.Hora) < ahora)
+            {
+                fechaActual = fechaActual.AddDays(7);
+            }
+
             var turnosGenerados = new List<Turno>();
             while (fechaActual.ToDateTime(TimeOnly.MinValue) <= limite)
             {
@@ -77,6 +84,8 @@ namespace Service.Turnos
 
             foreach (var turno in futuros)
             {
+                if (turno.Estado == "Cancelado") continue;
+
                 var dateOnly = DateOnly.FromDateTime(DateTimeHelper.UtcALocal(turno.FechaHora));
                 
                 // Si cambiaron de dia de la semana, movemos la fecha
@@ -87,7 +96,14 @@ namespace Service.Turnos
                     dateOnly = dateOnly.AddDays(diff);
                 }
 
-                turno.FechaHora = DateTimeHelper.LocalAUtc(dateOnly, reglaActualizada.Hora);
+                var nuevaFechaHora = DateTimeHelper.LocalAUtc(dateOnly, reglaActualizada.Hora);
+                if (nuevaFechaHora < ahora)
+                {
+                    turno.Estado = "Cancelado";
+                    continue;
+                }
+
+                turno.FechaHora = nuevaFechaHora;
                 turno.DuracionMin = reglaActualizada.DuracionMin;
             }
 
