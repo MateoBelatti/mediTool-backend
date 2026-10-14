@@ -1,6 +1,7 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using Biblioteca.Repository;
+using Microsoft.EntityFrameworkCore;
 using Repository.Pacientes;
 using Repository.TurnosFijos;
 using Service.Turnos;
@@ -16,17 +17,20 @@ namespace Service.TurnosFijos
         private readonly ITurnoFijoRepository _turnoFijoRepository;
         private readonly IGenerarInstanciasTurnoService _generarInstanciasService;
         private readonly IPacienteRepository _pacienteRepository;
+        private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
 
         public TurnoFijoService(
             ITurnoFijoRepository turnoFijoRepository, 
             IGenerarInstanciasTurnoService generarInstanciasService,
             IPacienteRepository pacienteRepository,
+            ApplicationDbContext dbContext,
             IMapper mapper)
         {
             _turnoFijoRepository = turnoFijoRepository;
             _generarInstanciasService = generarInstanciasService;
             _pacienteRepository = pacienteRepository;
+            _dbContext = dbContext;
             _mapper = mapper;
         }
 
@@ -39,13 +43,21 @@ namespace Service.TurnosFijos
             if (!await _pacienteRepository.IsVinculadoAsync(turnoFijo.PacienteId, turnoFijo.ProfesionalId))
                 throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
 
+            await using var tx = await _dbContext.Database.BeginTransactionAsync();
+
             await _turnoFijoRepository.Agregar(turnoFijo);
             await _turnoFijoRepository.GuardarCambios();
 
             var meses = dto.HorizonteMeses ?? HorizonteMesesPorDefecto;
             var generarHasta = DateTime.UtcNow.AddMonths(meses);
-            await _generarInstanciasService.GenerarInstancias(turnoFijo, generarHasta);
-            
+            var generados = await _generarInstanciasService.GenerarInstancias(turnoFijo, generarHasta);
+
+            if (generados == 0)
+                throw new ValidationError(
+                    "La regla no genera ningún turno futuro con los datos indicados.");
+
+            await tx.CommitAsync();
+
             return _mapper.Map<TurnoFijoResponseDto>(turnoFijo);
         }
 

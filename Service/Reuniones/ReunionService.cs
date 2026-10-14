@@ -2,6 +2,7 @@ using AutoMapper;
 using Biblioteca.Entities;
 using Repository.Reuniones;
 using Utils.DTOs.Reunion;
+using Utils.Helpers;
 
 namespace Service.Reuniones
 {
@@ -38,6 +39,7 @@ namespace Service.Reuniones
         public async Task<ReunionResponseDto> AddAsync(ReunionCreateDto dto)
         {
             var reunion = _mapper.Map<Reunion>(dto);
+            reunion.FechaHora = DateTimeHelper.NormalizarAUtc(reunion.FechaHora);
             var created = await _reunionRepository.AddAsync(reunion);
             await _reunionRepository.GuardarCambios();
             return _mapper.Map<ReunionResponseDto>(created);
@@ -49,6 +51,7 @@ namespace Service.Reuniones
             if (existing == null) return null;
 
             _mapper.Map(dto, existing);
+            existing.FechaHora = DateTimeHelper.NormalizarAUtc(existing.FechaHora);
             var updated = await _reunionRepository.UpdateAsync(existing);
             await _reunionRepository.GuardarCambios();
             return _mapper.Map<ReunionResponseDto>(updated);

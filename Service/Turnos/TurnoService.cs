@@ -7,6 +7,7 @@ using Repository.Turnos;
 using Utils.DTOs.Comun;
 using Utils.DTOs.Turno;
 using Utils.Exceptions;
+using Utils.Helpers;
 
 namespace Service.Turnos
 {
@@ -80,7 +81,7 @@ namespace Service.Turnos
 
         public async Task<TurnoResponseDto> CrearSuelto(CrearTurnoDto dto)
         {
-            var fechaHoraUtc = dto.FechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(dto.FechaHora, DateTimeKind.Utc) : dto.FechaHora.ToUniversalTime();
+            var fechaHoraUtc = DateTimeHelper.NormalizarAUtc(dto.FechaHora);
             if (fechaHoraUtc < DateTime.UtcNow)
                 throw new ValidationError("No se puede crear un turno con fecha pasada.");
 
@@ -93,13 +94,13 @@ namespace Service.Turnos
             if (!await _pacienteRepository.IsVinculadoAsync(dto.PacienteId, dto.ProfesionalId))
                 throw new ConflictError(ApplicationDbContextExtensions.MensajeNoVinculado);
 
-            if (await _turnoRepository.ExisteSolapamiento(dto.ProfesionalId, dto.FechaHora, dto.DuracionMin))
+            if (await _turnoRepository.ExisteSolapamiento(dto.ProfesionalId, fechaHoraUtc, dto.DuracionMin))
             {
                 throw new ConflictError("Ya existe un turno para este profesional en ese horario.");
             }
 
             var turno = _mapper.Map<Turno>(dto);
-            turno.FechaHora = turno.FechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(turno.FechaHora, DateTimeKind.Utc) : turno.FechaHora.ToUniversalTime();
+            turno.FechaHora = fechaHoraUtc;
             turno.FechaRegistro = DateTime.UtcNow;
             await _turnoRepository.Agregar(turno);
             await _turnoRepository.GuardarCambios();
@@ -143,12 +144,14 @@ namespace Service.Turnos
             if (turno.Estado != EstadoTurno.Pendiente.ToString() && turno.Estado != EstadoTurno.Reprogramado.ToString())
                 throw new ConflictError($"No se puede reprogramar el turno {turnoId} porque está en estado {turno.Estado}.");
 
-            if (await _turnoRepository.ExisteSolapamiento(turno.ProfesionalId, nuevaFechaHora, turno.DuracionMin, turnoId))
+            var nuevaFechaHoraUtc = DateTimeHelper.NormalizarAUtc(nuevaFechaHora);
+
+            if (await _turnoRepository.ExisteSolapamiento(turno.ProfesionalId, nuevaFechaHoraUtc, turno.DuracionMin, turnoId))
             {
                 throw new ConflictError("Ya existe un turno para este profesional en el nuevo horario.");
             }
 
-            turno.FechaHora = nuevaFechaHora.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(nuevaFechaHora, DateTimeKind.Utc) : nuevaFechaHora.ToUniversalTime();
+            turno.FechaHora = nuevaFechaHoraUtc;
             turno.Estado = EstadoTurno.Reprogramado.ToString();
             await _turnoRepository.Actualizar(turno);
             await _turnoRepository.GuardarCambios();

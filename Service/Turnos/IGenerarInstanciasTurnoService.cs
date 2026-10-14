@@ -4,7 +4,7 @@ namespace Service.Turnos
 {
     public interface IGenerarInstanciasTurnoService
     {
-        Task GenerarInstancias(TurnoFijo regla, DateTime hastaFecha);
+        Task<int> GenerarInstancias(TurnoFijo regla, DateTime hastaFecha);
         Task GenerarParaTodasLasReglasActivas(DateTime hastaFecha);
 
         // Nuevo: recalcula las instancias futuras cuando cambia la regla
