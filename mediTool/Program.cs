@@ -21,6 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Service.Auth;
 using mediTool.Security;
+using mediTool.Backgrounds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,9 @@ builder.Services.AddScoped<IReunionService, ReunionService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Background services
+builder.Services.AddHostedService<NotificacionAsistenciasPendientesService>();
 
 // JWT Configuration
 builder.Services.AddAuthentication(options =>
