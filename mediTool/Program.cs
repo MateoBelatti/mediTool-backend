@@ -15,6 +15,7 @@ using Repository.Reuniones;
 using Repository.Notificaciones;
 using Service.Informes;
 using Service.Reuniones;
+using Service.Notificaciones;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IGenerarInstanciasTurnoService, GenerarInstanciasTurn
 builder.Services.AddScoped<ITurnoService, TurnoService>();
 builder.Services.AddScoped<IInformeService, InformeService>();
 builder.Services.AddScoped<IReunionService, ReunionService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
