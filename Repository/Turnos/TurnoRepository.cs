@@ -67,6 +67,20 @@ namespace Repository.Turnos
                 t.FechaHora.AddMinutes(t.DuracionMin) > fechaHora);
         }
 
+        public async Task<List<(int ProfesionalId, int CantidadPendientes)>> ContarPendientesPorProfesional(DateTime antesDe)
+        {
+            antesDe = ToUtc(antesDe);
+            var grupos = await _context.Turnos
+                .Where(t => t.Estado == "Pendiente" && t.FechaHora < antesDe)
+                .GroupBy(t => t.ProfesionalId)
+                .Select(g => new { ProfesionalId = g.Key, Cantidad = g.Count() })
+                .ToListAsync();
+
+            return grupos
+                .Select(g => (g.ProfesionalId, g.Cantidad))
+                .ToList();
+        }
+
                 public async Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId)
         {
             if (turnoFijoId <= 0)

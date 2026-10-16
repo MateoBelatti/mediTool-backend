@@ -1,4 +1,5 @@
 using Biblioteca.Entities;
+using Utils.Enums;
 
 namespace Repository.Notificaciones
 {
@@ -9,6 +10,7 @@ namespace Repository.Notificaciones
         Task<bool> MarcarComoLeida(int notificacionId, int profesionalId);
         Task<int> MarcarTodasLeidas(int profesionalId);
         Task<int> ContarNoLeidas(int profesionalId);
+        Task<bool> ExisteNotificacionHoy(int profesionalId, TipoNotificacion tipo);
         Task GuardarCambios();
     }
 }

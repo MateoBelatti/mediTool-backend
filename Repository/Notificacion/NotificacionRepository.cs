@@ -1,6 +1,7 @@
 using Biblioteca.Entities;
 using Biblioteca.Repository;
 using Microsoft.EntityFrameworkCore;
+using Utils.Enums;
 
 namespace Repository.Notificaciones
 {
@@ -105,6 +106,19 @@ namespace Repository.Notificaciones
 
             return await _context.Notificaciones
                 .CountAsync(n => n.ProfesionalId == profesionalId && !n.Leida);
+        }
+
+        public async Task<bool> ExisteNotificacionHoy(int profesionalId, TipoNotificacion tipo)
+        {
+            if (profesionalId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
+
+            var desde = DateTime.UtcNow.Date;
+            return await _context.Notificaciones
+                .AnyAsync(n =>
+                    n.ProfesionalId == profesionalId &&
+                    n.Tipo == tipo &&
+                    n.FechaCreacion >= desde);
         }
 
         public async Task GuardarCambios()
