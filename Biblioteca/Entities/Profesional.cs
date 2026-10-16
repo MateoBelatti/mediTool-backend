@@ -60,5 +60,6 @@ namespace Biblioteca.Entities
         public ICollection<PacienteProfesional> PacienteProfesionales { get; set; } = new List<PacienteProfesional>();
         public ICollection<Informe> Informes { get; set; } = new List<Informe>();
         public ICollection<Reunion> Reuniones { get; set; } = new List<Reunion>();
+        public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
     }
 }

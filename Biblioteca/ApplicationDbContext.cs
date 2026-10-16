@@ -21,6 +21,9 @@ namespace Biblioteca.Repository
         public DbSet<Informe> Informes { get; set; }
         public DbSet<Reunion> Reuniones { get; set; }
 
+        // Tablas Branch feature/notificaciones
+        public DbSet<Notificacion> Notificaciones { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -107,6 +110,34 @@ namespace Biblioteca.Repository
                 .WithMany(tf => tf.Turnos)
                 .HasForeignKey(t => t.TurnoFijoId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Notificacion relationships
+            modelBuilder.Entity<Notificacion>()
+                .HasOne(n => n.Profesional)
+                .WithMany(p => p.Notificaciones)
+                .HasForeignKey(n => n.ProfesionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Notificacion>()
+                .Property(n => n.Leida)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<Notificacion>()
+                .Property(n => n.FechaCreacion)
+                .HasDefaultValueSql("NOW()");
+
+            // Indice compuesto para listados por profesional (leidas / no leidas)
+            modelBuilder.Entity<Notificacion>()
+                .HasIndex(n => new { n.ProfesionalId, n.Leida });
+
+            // Indice parcial: conteo y listado rapido de no leidas por profesional
+            modelBuilder.Entity<Notificacion>()
+                .HasIndex(n => n.ProfesionalId)
+                .HasFilter("\"leida\" = FALSE");
+
+            // Indice para limpieza/retencion por antiguedad
+            modelBuilder.Entity<Notificacion>()
+                .HasIndex(n => n.FechaCreacion);
 
         }
     }

@@ -70,20 +70,73 @@ namespace Biblioteca.Migrations
                     b.ToTable("informe");
                 });
 
-            modelBuilder.Entity("Biblioteca.Entities.Paciente", b =>
+            modelBuilder.Entity("Biblioteca.Entities.Notificacion", b =>
                 {
-                    b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("activo");
-
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_creacion")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("Leida")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("leida");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("mensaje");
+
+                    b.Property<int>("ProfesionalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("profesional_id");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer")
+                        .HasColumnName("tipo");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("titulo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FechaCreacion");
+
+                    b.HasIndex("ProfesionalId")
+                        .HasFilter("\"leida\" = FALSE");
+
+                    b.HasIndex("ProfesionalId", "Leida");
+
+                    b.ToTable("notificacion");
+                });
+
+            modelBuilder.Entity("Biblioteca.Entities.Paciente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("activo");
 
                     b.Property<string>("Apellido")
                         .IsRequired()
@@ -419,6 +472,17 @@ namespace Biblioteca.Migrations
                     b.Navigation("Profesional");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.Notificacion", b =>
+                {
+                    b.HasOne("Biblioteca.Entities.Profesional", "Profesional")
+                        .WithMany("Notificaciones")
+                        .HasForeignKey("ProfesionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Profesional");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.PacienteProfesional", b =>
                 {
                     b.HasOne("Biblioteca.Entities.Paciente", "Paciente")
@@ -504,6 +568,8 @@ namespace Biblioteca.Migrations
             modelBuilder.Entity("Biblioteca.Entities.Profesional", b =>
                 {
                     b.Navigation("Informes");
+
+                    b.Navigation("Notificaciones");
 
                     b.Navigation("PacienteProfesionales");
 
