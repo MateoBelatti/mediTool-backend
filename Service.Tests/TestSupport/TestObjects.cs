@@ -69,4 +69,19 @@ internal static class TestObjects
         FechaFin = fechaFin,
         Activo = activo
     };
+
+    public static Notificacion Notificacion(
+        int id = 1,
+        int profesionalId = ProfesionalId,
+        bool leida = false,
+        Utils.Enums.TipoNotificacion tipo = Utils.Enums.TipoNotificacion.Sistema) => new()
+    {
+        Id = id,
+        ProfesionalId = profesionalId,
+        Tipo = tipo,
+        Titulo = "Título de prueba",
+        Mensaje = "Mensaje de prueba",
+        Leida = leida,
+        FechaCreacion = new DateTime(2035, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+    };
 }
