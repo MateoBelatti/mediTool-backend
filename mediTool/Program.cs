@@ -12,6 +12,7 @@ using Service.TurnosFijos;
 using Service.Turnos;
 using Repository.Informes;
 using Repository.Reuniones;
+using Repository.Notificaciones;
 using Service.Informes;
 using Service.Reuniones;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,6 +38,7 @@ builder.Services.AddScoped<ITurnoFijoRepository, TurnoFijoRepository>();
 builder.Services.AddScoped<ITurnoRepository, TurnoRepository>();
 builder.Services.AddScoped<IInformeRepository, InformeRepository>();
 builder.Services.AddScoped<IReunionRepository, ReunionRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 // Inyección de dependencias de Servicios
 builder.Services.AddScoped<IPacienteService, PacienteService>();
