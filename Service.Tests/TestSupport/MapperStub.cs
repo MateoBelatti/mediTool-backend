@@ -1,6 +1,7 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using NSubstitute;
+using Utils.DTOs.Notificacion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
 
@@ -43,6 +44,15 @@ internal static class MapperStub
                 AplicarEdicion(ci.Arg<EditarTurnoFijoDto>(), ci.Arg<TurnoFijo>());
                 return ci.Arg<TurnoFijo>();
             });
+
+        mapper.Map<Notificacion>(Arg.Any<CrearNotificacionDto>())
+            .Returns(ci => ToNotificacion(ci.Arg<CrearNotificacionDto>()));
+
+        mapper.Map<NotificacionDto>(Arg.Any<Notificacion>())
+            .Returns(ci => ToNotificacionDto(ci.Arg<Notificacion>()));
+
+        mapper.Map<IEnumerable<NotificacionDto>>(Arg.Any<IEnumerable<Notificacion>>())
+            .Returns(ci => ci.Arg<IEnumerable<Notificacion>>().Select(ToNotificacionDto).ToList());
 
         return mapper;
     }
@@ -109,4 +119,23 @@ internal static class MapperStub
         regla.FechaFin = dto.FechaFin;
         regla.Activo = dto.Activo;
     }
+
+    private static Notificacion ToNotificacion(CrearNotificacionDto dto) => new()
+    {
+        ProfesionalId = dto.ProfesionalId,
+        Tipo = dto.Tipo,
+        Titulo = dto.Titulo,
+        Mensaje = dto.Mensaje
+    };
+
+    private static NotificacionDto ToNotificacionDto(Notificacion notificacion) => new()
+    {
+        Id = notificacion.Id,
+        ProfesionalId = notificacion.ProfesionalId,
+        Tipo = notificacion.Tipo,
+        Titulo = notificacion.Titulo,
+        Mensaje = notificacion.Mensaje,
+        Leida = notificacion.Leida,
+        FechaCreacion = notificacion.FechaCreacion
+    };
 }

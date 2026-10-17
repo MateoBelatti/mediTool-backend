@@ -66,4 +66,11 @@ internal sealed class FakeTurnoRepository : ITurnoRepository
 
     public Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta) =>
         throw new NotSupportedException("No es necesario para este doble de test.");
+
+    public Task<List<(int ProfesionalId, int CantidadPendientes)>> ContarPendientesPorProfesional(DateTime antesDe) =>
+        Task.FromResult(_turnos
+            .Where(t => t.Estado == "Pendiente" && t.FechaHora < antesDe)
+            .GroupBy(t => t.ProfesionalId)
+            .Select(g => (g.Key, g.Count()))
+            .ToList());
 }

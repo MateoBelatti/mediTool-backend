@@ -12,13 +12,16 @@ using Service.TurnosFijos;
 using Service.Turnos;
 using Repository.Informes;
 using Repository.Reuniones;
+using Repository.Notificaciones;
 using Service.Informes;
 using Service.Reuniones;
+using Service.Notificaciones;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Service.Auth;
 using mediTool.Security;
+using mediTool.Backgrounds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +40,7 @@ builder.Services.AddScoped<ITurnoFijoRepository, TurnoFijoRepository>();
 builder.Services.AddScoped<ITurnoRepository, TurnoRepository>();
 builder.Services.AddScoped<IInformeRepository, InformeRepository>();
 builder.Services.AddScoped<IReunionRepository, ReunionRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 
 // Inyección de dependencias de Servicios
 builder.Services.AddScoped<IPacienteService, PacienteService>();
@@ -46,8 +50,12 @@ builder.Services.AddScoped<IGenerarInstanciasTurnoService, GenerarInstanciasTurn
 builder.Services.AddScoped<ITurnoService, TurnoService>();
 builder.Services.AddScoped<IInformeService, InformeService>();
 builder.Services.AddScoped<IReunionService, ReunionService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Background services
+builder.Services.AddHostedService<NotificacionAsistenciasPendientesService>();
 
 // JWT Configuration
 builder.Services.AddAuthentication(options =>

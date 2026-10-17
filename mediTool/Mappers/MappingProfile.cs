@@ -10,6 +10,8 @@ using Utils.DTOs.Turno;
 // Branch feature/informe-reuniones
 using Utils.DTOs.Informe;
 using Utils.DTOs.Reunion;
+// Branch feature/notificaciones
+using Utils.DTOs.Notificacion;
 
 namespace mediTool.Mappers
 {
@@ -91,6 +93,15 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Profesional, opt => opt.Ignore());
 
             CreateMap<Reunion, ReunionResponseDto>();
+
+            // Mapeos de Notificacion
+            CreateMap<CrearNotificacionDto, Notificacion>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Leida, opt => opt.Ignore())
+                .ForMember(dest => dest.FechaCreacion, opt => opt.Ignore())
+                .ForMember(dest => dest.Profesional, opt => opt.Ignore());
+
+            CreateMap<Notificacion, NotificacionDto>();
 
         }
     }

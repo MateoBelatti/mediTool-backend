@@ -11,6 +11,7 @@ namespace Repository.Turnos
         Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId);
         Task<List<Turno>> ObtenerFuturosPorTurnoFijo(int turnoFijoId, DateTime desde);
         Task<bool> ExisteSolapamiento(int profesionalId, DateTime fechaHora, int duracionMin, int? excluirTurnoId = null);
+        Task<List<(int ProfesionalId, int CantidadPendientes)>> ContarPendientesPorProfesional(DateTime antesDe);
         Task Agregar(Turno turno);
         Task Actualizar(Turno turno);
         Task ActualizarRango(List<Turno> turnos);
