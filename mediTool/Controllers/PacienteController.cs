@@ -19,7 +19,7 @@ namespace mediTool.Controllers
             _pacienteService = pacienteService;
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "AdminOrProfesional")]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? searchTerm = null, [FromQuery] string? sortBy = "nombre", [FromQuery] string? sortOrder = "asc")
         {
@@ -34,7 +34,7 @@ namespace mediTool.Controllers
             return Ok(pacientes);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "AdminOrProfesional")]
         [HttpGet("{id}/profesionales")]
         public async Task<IActionResult> GetProfesionalesVinculados(int id)
         {

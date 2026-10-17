@@ -21,7 +21,7 @@ namespace mediTool.Controllers
             _turnoService = turnoService;
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "AdminOrProfesional")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -110,10 +110,10 @@ namespace mediTool.Controllers
         }
 
         [HttpGet("{id}/agenda")]
-        public async Task<IActionResult> GetAgenda(int id, [FromQuery] DateTime desde, [FromQuery] DateTime hasta, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetAgenda(int id, [FromQuery] DateTime desde, [FromQuery] DateTime hasta, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] int? pacienteId = null)
         {
             User.EnsureOwnership(id);
-            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, page, pageSize, id);
+            var turnos = await _turnoService.ObtenerAgenda(desde, hasta, page, pageSize, id, pacienteId);
             return Ok(turnos);
         }
     }
