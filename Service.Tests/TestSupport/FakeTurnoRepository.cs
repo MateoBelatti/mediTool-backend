@@ -61,7 +61,7 @@ internal sealed class FakeTurnoRepository : ITurnoRepository
         Task.FromResult(_turnos.Where(t => t.TurnoFijoId == turnoFijoId).ToList());
 
     public Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(
-        DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null) =>
+        DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null, int? pacienteId = null) =>
         throw new NotSupportedException("No es necesario para este doble de test.");
 
     public Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta) =>
