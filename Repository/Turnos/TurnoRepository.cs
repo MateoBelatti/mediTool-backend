@@ -120,7 +120,7 @@ namespace Repository.Turnos
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null)
+        public async Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null, int? pacienteId = null)
         {
             if (page < 1)
                 throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
@@ -137,6 +137,11 @@ namespace Repository.Turnos
             if (profesionalId.HasValue)
             {
                 query = query.Where(t => t.ProfesionalId == profesionalId.Value);
+            }
+
+            if (pacienteId.HasValue)
+            {
+                query = query.Where(t => t.PacienteId == pacienteId.Value);
             }
 
             var skip = (long)(page - 1) * pageSize;

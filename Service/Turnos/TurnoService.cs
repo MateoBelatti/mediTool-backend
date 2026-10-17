@@ -108,11 +108,11 @@ namespace Service.Turnos
             return _mapper.Map<TurnoResponseDto>(turno);
         }
 
-        public async Task<PageResult<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId)
+        public async Task<PageResult<TurnoResponseDto>> ObtenerAgenda(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId, int? pacienteId = null)
         {
             ValidatePagination(page, pageSize);
 
-            var result = await _turnoRepository.ObtenerPorRangoFecha(desde, hasta, page, pageSize, profesionalId);
+            var result = await _turnoRepository.ObtenerPorRangoFecha(desde, hasta, page, pageSize, profesionalId, pacienteId);
             var items = _mapper.Map<IEnumerable<TurnoResponseDto>>(result.Items).ToList();
             var totalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 
