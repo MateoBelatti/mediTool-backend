@@ -61,7 +61,8 @@ namespace Repository.Pacientes
                     p.Nombre.ToLower().Contains(term) || 
                     p.Apellido.ToLower().Contains(term) || 
                     (p.Dni != null && p.Dni.Contains(term)) || 
-                    (p.ObraSocial != null && p.ObraSocial.ToLower().Contains(term)));
+                    (p.ObraSocial != null && p.ObraSocial.ToLower().Contains(term)) ||
+                    (p.Escuela != null && p.Escuela.ToLower().Contains(term)));
             }
 
             var skip = (long)(page - 1) * pageSize;
@@ -76,6 +77,7 @@ namespace Repository.Pacientes
                 "apellido" => isDesc ? query.OrderByDescending(p => p.Apellido).ThenByDescending(p => p.Nombre).ThenBy(p => p.Id) : query.OrderBy(p => p.Apellido).ThenBy(p => p.Nombre).ThenBy(p => p.Id),
                 "dni" => isDesc ? query.OrderByDescending(p => p.Dni).ThenBy(p => p.Id) : query.OrderBy(p => p.Dni).ThenBy(p => p.Id),
                 "obrasocial" => isDesc ? query.OrderByDescending(p => p.ObraSocial).ThenBy(p => p.Id) : query.OrderBy(p => p.ObraSocial).ThenBy(p => p.Id),
+                "escuela" => isDesc ? query.OrderByDescending(p => p.Escuela).ThenBy(p => p.Id) : query.OrderBy(p => p.Escuela).ThenBy(p => p.Id),
                 _ => isDesc ? query.OrderByDescending(p => p.Nombre).ThenByDescending(p => p.Apellido).ThenBy(p => p.Id) : query.OrderBy(p => p.Nombre).ThenBy(p => p.Apellido).ThenBy(p => p.Id)
             };
 

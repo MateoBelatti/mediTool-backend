@@ -47,6 +47,10 @@ namespace Biblioteca.Entities
         [Column("nro_afiliado")]
         public string? NroAfiliado { get; set; }
 
+        [MaxLength(100)]
+        [Column("escuela")]
+        public string? Escuela { get; set; }
+
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
 

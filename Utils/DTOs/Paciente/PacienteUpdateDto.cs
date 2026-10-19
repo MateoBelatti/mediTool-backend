@@ -32,5 +32,8 @@ namespace Utils.DTOs.Paciente
 
         [MaxLength(50, ErrorMessage = "El número de afiliado no puede superar los 50 caracteres.")]
         public string? NroAfiliado { get; set; }
+
+        [MaxLength(100, ErrorMessage = "La escuela no puede superar los 100 caracteres.")]
+        public string? Escuela { get; set; }
     }
 }
