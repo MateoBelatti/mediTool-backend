@@ -163,6 +163,11 @@ namespace Biblioteca.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("email");
 
+                    b.Property<string>("Escuela")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("escuela");
+
                     b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_baja");
