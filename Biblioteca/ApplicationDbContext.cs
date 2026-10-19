@@ -72,6 +72,12 @@ namespace Biblioteca.Repository
                 .HasForeignKey(i => i.ProfesionalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Informe>()
+                .HasOne(i => i.Turno)
+                .WithOne(t => t.Informe)
+                .HasForeignKey<Informe>(i => i.TurnoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Configure Reunion relationships
             modelBuilder.Entity<Reunion>()
                 .HasOne(r => r.Profesional)

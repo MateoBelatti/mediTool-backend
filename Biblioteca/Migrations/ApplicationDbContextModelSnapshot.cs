@@ -61,11 +61,18 @@ namespace Biblioteca.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("tipo");
 
+                    b.Property<int?>("TurnoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("turno_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PacienteId");
 
                     b.HasIndex("ProfesionalId");
+
+                    b.HasIndex("TurnoId")
+                        .IsUnique();
 
                     b.ToTable("informe");
                 });
@@ -472,9 +479,16 @@ namespace Biblioteca.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Biblioteca.Entities.Turno", "Turno")
+                        .WithOne("Informe")
+                        .HasForeignKey("Biblioteca.Entities.Informe", "TurnoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Paciente");
 
                     b.Navigation("Profesional");
+
+                    b.Navigation("Turno");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.Notificacion", b =>
@@ -579,6 +593,11 @@ namespace Biblioteca.Migrations
                     b.Navigation("PacienteProfesionales");
 
                     b.Navigation("Reuniones");
+                });
+
+            modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
+                {
+                    b.Navigation("Informe");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.TurnoFijo", b =>

@@ -61,5 +61,7 @@ namespace Biblioteca.Entities
         [ForeignKey("ProfesionalId")]
         public Profesional? Profesional { get; set; }
 
+        public virtual Informe? Informe { get; set; }
+
     }
 }
