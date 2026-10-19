@@ -84,4 +84,25 @@ internal static class TestObjects
         Leida = leida,
         FechaCreacion = new DateTime(2035, 1, 1, 0, 0, 0, DateTimeKind.Utc)
     };
+
+    public static Informe Informe(
+        int id = 1,
+        int pacienteId = PacienteId,
+        int profesionalId = ProfesionalId,
+        int? turnoId = null,
+        DateOnly? fecha = null,
+        string? tipo = "Evolución",
+        string? contenido = "Nota clínica",
+        string? estado = "Pendiente") => new()
+    {
+        Id = id,
+        PacienteId = pacienteId,
+        ProfesionalId = profesionalId,
+        TurnoId = turnoId,
+        Fecha = fecha ?? new DateOnly(2035, 1, 8),
+        Tipo = tipo,
+        Contenido = contenido,
+        Estado = estado,
+        CreatedAt = new DateTime(2035, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+    };
 }
