@@ -71,13 +71,15 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.Paciente, opt => opt.Ignore())
-                .ForMember(dest => dest.Profesional, opt => opt.Ignore());
+                .ForMember(dest => dest.Profesional, opt => opt.Ignore())
+                .ForMember(dest => dest.Turno, opt => opt.Ignore());
 
             CreateMap<InformeUpdateDto, Informe>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.Paciente, opt => opt.Ignore())
-                .ForMember(dest => dest.Profesional, opt => opt.Ignore());
+                .ForMember(dest => dest.Profesional, opt => opt.Ignore())
+                .ForMember(dest => dest.Turno, opt => opt.Ignore());
 
             CreateMap<Informe, InformeResponseDto>();
 
