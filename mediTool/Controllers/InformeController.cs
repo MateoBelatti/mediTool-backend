@@ -47,6 +47,19 @@ namespace mediTool.Controllers
             return Ok(informes);
         }
 
+        [HttpGet("turno/{turnoId}")]
+        public async Task<IActionResult> GetByTurnoId(int turnoId)
+        {
+            var informe = await _informeService.GetByTurnoIdAsync(turnoId);
+            if (informe == null)
+            {
+                return NotFound();
+            }
+
+            User.EnsureOwnership(informe.ProfesionalId);
+            return Ok(informe);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] InformeCreateDto dto)
         {
