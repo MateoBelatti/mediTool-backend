@@ -12,6 +12,7 @@ namespace Utils.DTOs.Paciente
         public string? Email { get; set; }
         public string? ObraSocial { get; set; }
         public string? NroAfiliado { get; set; }
+        public string? Escuela { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
 }
