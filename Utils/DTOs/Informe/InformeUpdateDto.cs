@@ -6,6 +6,8 @@ namespace Utils.DTOs.Informe
     {
         public int? PacienteId { get; set; }
 
+        public int? TurnoId { get; set; }
+
         [Required]
         public int ProfesionalId { get; set; }
 

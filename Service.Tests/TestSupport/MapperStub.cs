@@ -1,6 +1,7 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using NSubstitute;
+using Utils.DTOs.Informe;
 using Utils.DTOs.Notificacion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
@@ -53,6 +54,22 @@ internal static class MapperStub
 
         mapper.Map<IEnumerable<NotificacionDto>>(Arg.Any<IEnumerable<Notificacion>>())
             .Returns(ci => ci.Arg<IEnumerable<Notificacion>>().Select(ToNotificacionDto).ToList());
+
+        mapper.Map<Informe>(Arg.Any<InformeCreateDto>())
+            .Returns(ci => ToInforme(ci.Arg<InformeCreateDto>()));
+
+        mapper.Map<InformeResponseDto>(Arg.Any<Informe>())
+            .Returns(ci => ToInformeDto(ci.Arg<Informe>()));
+
+        mapper.Map<IEnumerable<InformeResponseDto>>(Arg.Any<IEnumerable<Informe>>())
+            .Returns(ci => ci.Arg<IEnumerable<Informe>>().Select(ToInformeDto).ToList());
+
+        mapper.Map(Arg.Any<InformeUpdateDto>(), Arg.Any<Informe>())
+            .Returns(ci =>
+            {
+                AplicarEdicionInforme(ci.Arg<InformeUpdateDto>(), ci.Arg<Informe>());
+                return ci.Arg<Informe>();
+            });
 
         return mapper;
     }
@@ -138,4 +155,39 @@ internal static class MapperStub
         Leida = notificacion.Leida,
         FechaCreacion = notificacion.FechaCreacion
     };
+
+    private static Informe ToInforme(InformeCreateDto dto) => new()
+    {
+        PacienteId = dto.PacienteId,
+        ProfesionalId = dto.ProfesionalId,
+        TurnoId = dto.TurnoId,
+        Fecha = dto.Fecha,
+        Tipo = dto.Tipo,
+        Contenido = dto.Contenido,
+        Estado = dto.Estado
+    };
+
+    private static InformeResponseDto ToInformeDto(Informe informe) => new()
+    {
+        Id = informe.Id,
+        PacienteId = informe.PacienteId,
+        ProfesionalId = informe.ProfesionalId,
+        TurnoId = informe.TurnoId,
+        Fecha = informe.Fecha,
+        Tipo = informe.Tipo,
+        Contenido = informe.Contenido,
+        Estado = informe.Estado,
+        CreatedAt = informe.CreatedAt
+    };
+
+    private static void AplicarEdicionInforme(InformeUpdateDto dto, Informe informe)
+    {
+        informe.PacienteId = dto.PacienteId;
+        informe.ProfesionalId = dto.ProfesionalId;
+        informe.TurnoId = dto.TurnoId;
+        informe.Fecha = dto.Fecha;
+        informe.Tipo = dto.Tipo;
+        informe.Contenido = dto.Contenido;
+        informe.Estado = dto.Estado;
+    }
 }

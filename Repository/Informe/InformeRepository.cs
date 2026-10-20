@@ -34,6 +34,22 @@ namespace Repository.Informes
                 .ToListAsync();
         }
 
+        public async Task<Informe?> GetByTurnoIdAsync(int turnoId)
+        {
+            if (turnoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoId), "El id debe ser mayor que 0.");
+            return await _context.Informes
+                .FirstOrDefaultAsync(i => i.TurnoId == turnoId);
+        }
+
+        public async Task<bool> ExisteParaTurnoAsync(int turnoId, int? excluirInformeId = null)
+        {
+            if (turnoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoId), "El id debe ser mayor que 0.");
+            return await _context.Informes
+                .AnyAsync(i => i.TurnoId == turnoId && (!excluirInformeId.HasValue || i.Id != excluirInformeId.Value));
+        }
+
         public async Task<Informe> AddAsync(Informe entity)
         {
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
