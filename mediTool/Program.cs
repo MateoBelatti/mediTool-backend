@@ -17,8 +17,10 @@ using Service.Informes;
 using Service.Reuniones;
 using Service.Notificaciones;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 using Service.Auth;
 using mediTool.Security;
 using mediTool.Backgrounds;
@@ -65,6 +67,11 @@ builder.Services.AddAuthentication(options =>
 }).AddJwtBearer(options =>
 {
     var key = builder.Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key");
+    if (key.Length < 32)
+    {
+        throw new InvalidOperationException("Jwt:Key debe tener al menos 32 caracteres.");
+    }
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -89,13 +96,35 @@ builder.Services.AddCors(options =>
     var origenesPermitidos = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
         ?? new[] { "http://localhost:5173", "http://127.0.0.1:5173", "http://[::1]:5173" };
 
-    options.AddPolicy("AllowLocalhost5173",
+    options.AddPolicy("FrontendCors",
         policy =>
         {
             policy.WithOrigins(origenesPermitidos)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 builder.Services.AddControllers();
@@ -114,6 +143,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
+app.UseForwardedHeaders();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -124,14 +155,21 @@ if (app.Environment.IsDevelopment())
 // El CORS va antes de la redirección HTTPS para que el preflight OPTIONS
 // responda 204 con los headers CORS en vez de un 307 que el navegador no
 // puede resolver de forma consistente.
-app.UseCors("AllowLocalhost5173");
+app.UseCors("FrontendCors");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();
 

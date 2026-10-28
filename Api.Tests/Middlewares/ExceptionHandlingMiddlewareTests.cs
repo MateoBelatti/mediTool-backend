@@ -222,6 +222,94 @@ public class ExceptionHandlingMiddlewareTests
         error.Message.Should().Be("No está autorizado para acceder a este recurso.");
     }
 
+    [Fact]
+    public async Task InvokeAsync_DbUpdateException_EnProduccion_NoExponeDetallesTecnicos()
+    {
+        // Arrange
+        RequestDelegate next = _ => throw new DbUpdateException("constraint \"fk_turno_paciente\" violada");
+
+        // Act
+        var (context, error) = await EjecutarMiddleware(next, environment: Environments.Production);
+
+        // Assert
+        context.Response.StatusCode.Should().Be((int)HttpStatusCode.Conflict);
+        error.Should().NotBeNull();
+        error!.Code.Should().Be(409);
+        error.Message.Should().Be("No se puede eliminar el recurso porque tiene registros asociados.");
+        error.Details.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_KeyNotFoundException_EnProduccion_NoExponeDetallesTecnicos()
+    {
+        // Arrange
+        RequestDelegate next = _ => throw new KeyNotFoundException("Entidad no hallada en tabla turno");
+
+        // Act
+        var (context, error) = await EjecutarMiddleware(next, environment: Environments.Production);
+
+        // Assert
+        context.Response.StatusCode.Should().Be((int)HttpStatusCode.NotFound);
+        error.Should().NotBeNull();
+        error!.Code.Should().Be(404);
+        error.Message.Should().Be("El recurso solicitado no existe.");
+        error.Details.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(typeof(ArgumentException))]
+    [InlineData(typeof(InvalidOperationException))]
+    public async Task InvokeAsync_ArgumentOInvalidOperationException_EnProduccion_NoExponeDetallesTecnicos(Type exceptionType)
+    {
+        // Arrange
+        var ex = (Exception)Activator.CreateInstance(exceptionType, "Detalle interno del parámetro")!;
+        RequestDelegate next = _ => throw ex;
+
+        // Act
+        var (context, error) = await EjecutarMiddleware(next, environment: Environments.Production);
+
+        // Assert
+        context.Response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        error.Should().NotBeNull();
+        error!.Code.Should().Be(400);
+        error.Message.Should().Be("La solicitud no es válida.");
+        error.Details.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_UnauthorizedAccessException_EnProduccion_NoExponeDetallesTecnicos()
+    {
+        // Arrange
+        RequestDelegate next = _ => throw new UnauthorizedAccessException("Acceso denegado al recurso interno");
+
+        // Act
+        var (context, error) = await EjecutarMiddleware(next, environment: Environments.Production);
+
+        // Assert
+        context.Response.StatusCode.Should().Be((int)HttpStatusCode.Unauthorized);
+        error.Should().NotBeNull();
+        error!.Code.Should().Be(401);
+        error.Message.Should().Be("No está autorizado para acceder a este recurso.");
+        error.Details.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AppException_EnProduccion_MantieneDetallesDeValidacion()
+    {
+        // Arrange
+        RequestDelegate next = _ => throw new ValidationError("Datos de entrada inválidos", new List<string> { "La hora es requerida" });
+
+        // Act
+        var (context, error) = await EjecutarMiddleware(next, environment: Environments.Production);
+
+        // Assert
+        context.Response.StatusCode.Should().Be((int)HttpStatusCode.BadRequest);
+        error.Should().NotBeNull();
+        error!.Code.Should().Be(400);
+        error.Message.Should().Be("Datos de entrada inválidos");
+        error.Details.Should().Contain("La hora es requerida");
+    }
+
     // ----- Diferenciación por Entorno (Development vs Production) -----
 
     [Fact]

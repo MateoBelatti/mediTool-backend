@@ -54,7 +54,10 @@ namespace mediTool.Middlewares
                 case DbUpdateException:
                     statusCode = HttpStatusCode.Conflict;
                     message = "No se puede eliminar el recurso porque tiene registros asociados.";
-                    details.Add(exception.Message);
+                    if (_env.IsDevelopment())
+                    {
+                        details.Add(exception.Message);
+                    }
                     break;
                 case AppException appEx:
                     statusCode = appEx.StatusCode;
@@ -64,17 +67,26 @@ namespace mediTool.Middlewares
                 case KeyNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     message = "El recurso solicitado no existe.";
-                    details.Add(exception.Message);
+                    if (_env.IsDevelopment())
+                    {
+                        details.Add(exception.Message);
+                    }
                     break;
                 case ArgumentException or InvalidOperationException:
                     statusCode = HttpStatusCode.BadRequest;
                     message = "La solicitud no es válida.";
-                    details.Add(exception.Message);
+                    if (_env.IsDevelopment())
+                    {
+                        details.Add(exception.Message);
+                    }
                     break;
                 case UnauthorizedAccessException:
                     statusCode = HttpStatusCode.Unauthorized;
                     message = "No está autorizado para acceder a este recurso.";
-                    details.Add(exception.Message);
+                    if (_env.IsDevelopment())
+                    {
+                        details.Add(exception.Message);
+                    }
                     break;
                 default:
                     if (_env.IsDevelopment())

@@ -51,3 +51,34 @@ dotnet test --filter "FullyQualifiedName~GenerarInstancias"
 - **Patrón de Nomenclatura**: `Metodo_Escenario_ResultadoEsperado` (ej. `GenerarInstancias_TurnosYaMaterializados_NoDuplicaLasInstanciasExistentes`).
 - **Estructura AAA**: Bloques claros de `Arrange`, `Act` y `Assert`.
 - **Aislamiento e Idempotencia**: Cada test es independiente, no comparte estado mutable entre ejecuciones y utiliza dobles de prueba (`NSubstitute`) o bases de datos en memoria (`UseInMemoryDatabase`) con identificadores únicos (`Guid.NewGuid()`).
+
+---
+
+## 🚀 Deploy
+
+El backend está pensado para correr en Railway con un contenedor Docker y PostgreSQL gestionado. El TLS lo termina el proxy de Railway, por eso la redirección HTTPS queda desactivada en producción.
+
+### Variables de entorno requeridas
+
+| Variable | Descripción |
+|---|---|
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+| `ConnectionStrings__DefaultConnection` | Connection string de PostgreSQL (`Host=...;Port=...;Database=...;Username=...;Password=...`) |
+| `Jwt__Key` | Clave secreta de al menos 32 caracteres |
+| `Jwt__Issuer` | Emisor del token |
+| `Jwt__Audience` | Audiencia del token |
+| `Jwt__AccessTokenExpirationMinutes` | Vigencia del access token en minutos |
+| `Jwt__RefreshTokenExpirationDays` | Vigencia del refresh token en días |
+| `Cors__AllowedOrigins__0` | Origen permitido del frontend (agregar `__1`, `__2`, ... para más orígenes) |
+| `Seed__AdminEmail` | Email del administrador inicial |
+| `Seed__AdminPassword` | Contraseña del administrador inicial |
+
+Generar una clave segura para `Jwt__Key`:
+
+```bash
+openssl rand -base64 64
+```
+
+Las migraciones se aplican solas al arrancar la aplicación (`Database.Migrate()`). Conviene hacer un backup de la base antes de deployar versiones que incluyan migraciones nuevas.
+
+El endpoint `GET /health` responde `{ "status": "ok" }` sin autenticación y sirve como health check del servicio.
