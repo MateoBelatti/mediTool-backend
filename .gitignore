@@ -1,0 +1,44 @@
+# Visual Studio / Visual Studio Code / .NET Core gitignore
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leases/
+x64/
+x86/
+[AR]m/
+[AR]m64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esults/
+
+# Visual Studio Cache and settings
+.vs/
+*.user
+*.userprefs
+*.suo
+
+# Rider / IntelliJ
+.idea/
+
+# VS Code
+.vscode/
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# OS files
+Thumbs.db
+EHthumbs.db
+Desktop.ini
+.DS_Store
+
+# Configuration files
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.*.json

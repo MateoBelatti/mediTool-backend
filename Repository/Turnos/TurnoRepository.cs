@@ -1,0 +1,190 @@
+using Biblioteca.Entities;
+using Biblioteca.Repository;
+using Microsoft.EntityFrameworkCore;
+using Utils.Helpers;
+
+namespace Repository.Turnos
+{
+    public class TurnoRepository : ITurnoRepository
+    {
+        private readonly ApplicationDbContext _context;
+
+        public TurnoRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        private DateTime ToUtc(DateTime date)
+        {
+            return DateTimeHelper.NormalizarAUtc(date);
+        }
+
+        public async Task Actualizar(Turno turno)
+        {
+            ArgumentNullException.ThrowIfNull(turno, nameof(turno));
+            var persisted = await _context.Turnos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == turno.Id);
+            if (persisted == null)
+                throw new KeyNotFoundException($"Turno {turno.Id} no encontrado.");
+
+            if (persisted.PacienteId != turno.PacienteId || persisted.ProfesionalId != turno.ProfesionalId)
+            {
+                await _context.ValidarPacienteActivoAsync(turno.PacienteId);
+                await _context.ValidarVinculacionAsync(turno.PacienteId, turno.ProfesionalId);
+            }
+
+            _context.Turnos.Update(turno);
+            await Task.CompletedTask;
+        }
+
+        public async Task ActualizarRango(List<Turno> turnos)
+        {
+            ArgumentNullException.ThrowIfNull(turnos, nameof(turnos));
+            _context.Turnos.UpdateRange(turnos);
+            await Task.CompletedTask;
+        }
+
+        public async Task Agregar(Turno turno)
+        {
+            ArgumentNullException.ThrowIfNull(turno, nameof(turno));
+            await _context.ValidarPacienteActivoAsync(turno.PacienteId);
+            await _context.ValidarVinculacionAsync(turno.PacienteId, turno.ProfesionalId);
+            await _context.Turnos.AddAsync(turno);
+        }
+
+        public async Task<bool> ExisteSolapamiento(int profesionalId, DateTime fechaHora, int duracionMin, int? excluirTurnoId = null)
+        {
+            if (profesionalId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
+            fechaHora = ToUtc(fechaHora);
+            var finNuevo = fechaHora.AddMinutes(duracionMin);
+            return await _context.Turnos.AnyAsync(t => 
+                t.ProfesionalId == profesionalId &&
+                (!excluirTurnoId.HasValue || t.Id != excluirTurnoId.Value) &&
+                t.Estado != "Cancelado" &&
+                t.FechaHora < finNuevo && 
+                t.FechaHora.AddMinutes(t.DuracionMin) > fechaHora);
+        }
+
+        public async Task<List<(int ProfesionalId, int CantidadPendientes)>> ContarPendientesPorProfesional(DateTime antesDe)
+        {
+            antesDe = ToUtc(antesDe);
+            var grupos = await _context.Turnos
+                .Where(t => t.Estado == "Pendiente" && t.FechaHora < antesDe)
+                .GroupBy(t => t.ProfesionalId)
+                .Select(g => new { ProfesionalId = g.Key, Cantidad = g.Count() })
+                .ToListAsync();
+
+            return grupos
+                .Select(g => (g.ProfesionalId, g.Cantidad))
+                .ToList();
+        }
+
+                public async Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId)
+        {
+            if (turnoFijoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoFijoId), "El id debe ser mayor que 0.");
+            
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .Where(t => t.TurnoFijoId == turnoFijoId)
+                .OrderByDescending(t => t.FechaHora)
+                .ToListAsync();
+        }
+
+        public async Task GuardarCambios()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Turno>> ObtenerFuturosPorTurnoFijo(int turnoFijoId, DateTime desde)
+        {
+            if (turnoFijoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoFijoId), "El id debe ser mayor que 0.");
+            desde = ToUtc(desde);
+            return await _context.Turnos
+                .Where(t => t.TurnoFijoId == turnoFijoId && t.FechaHora >= desde)
+                .OrderBy(t => t.FechaHora)
+                .ToListAsync();
+        }
+
+        public async Task<Turno?> ObtenerPorId(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentOutOfRangeException(nameof(id), "El id debe ser mayor que 0.");
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        public async Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null, int? pacienteId = null)
+        {
+            if (page < 1)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página debe ser mayor que 0.");
+            if (pageSize < 1 || pageSize > 1000)
+                throw new ArgumentOutOfRangeException(nameof(pageSize), "El tamaño de página debe estar entre 1 y 1000.");
+
+            desde = ToUtc(desde);
+            hasta = ToUtc(hasta);
+            var query = _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .Where(t => t.FechaHora >= desde && t.FechaHora <= hasta);
+            
+            if (profesionalId.HasValue)
+            {
+                query = query.Where(t => t.ProfesionalId == profesionalId.Value);
+            }
+
+            if (pacienteId.HasValue)
+            {
+                query = query.Where(t => t.PacienteId == pacienteId.Value);
+            }
+
+            var skip = (long)(page - 1) * pageSize;
+            if (skip > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(page), "La página solicitada es demasiado grande.");
+
+            var totalItems = await query.CountAsync();
+            var items = await query
+                .OrderBy(t => t.FechaHora)
+                .ThenBy(t => t.Id)
+                .Skip((int)skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalItems);
+        }
+
+        public async Task<List<Turno>> ObtenerFacturables(int pacienteId, DateTime desde, DateTime hasta)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+            desde = ToUtc(desde);
+            hasta = ToUtc(hasta);
+            return await _context.Turnos
+                .Include(t => t.Paciente)
+                .Include(t => t.Profesional)
+                .Where(t => t.PacienteId == pacienteId &&
+                            t.Facturable &&
+                            t.Estado != "Cancelado" &&
+                            t.FechaHora >= desde &&
+                            t.FechaHora <= hasta)
+                .OrderBy(t => t.FechaHora)
+                .ToListAsync();
+        }
+
+        public async Task<Turno?> ObtenerUltimoPorTurnoFijo(int turnoFijoId)
+        {
+            if (turnoFijoId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(turnoFijoId), "El id debe ser mayor que 0.");
+            return await _context.Turnos
+                .Where(t => t.TurnoFijoId == turnoFijoId)
+                .OrderByDescending(t => t.FechaHora)
+                .FirstOrDefaultAsync();
+        }
+    }
+}
