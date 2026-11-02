@@ -91,14 +91,21 @@ namespace mediTool.Mappers
             CreateMap<ReunionCreateDto, Reunion>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.Profesional, opt => opt.Ignore());
+                .ForMember(dest => dest.Profesional, opt => opt.Ignore())
+                .ForMember(dest => dest.Profesionales, opt => opt.Ignore());
 
             CreateMap<ReunionUpdateDto, Reunion>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.Profesional, opt => opt.Ignore());
+                .ForMember(dest => dest.Profesional, opt => opt.Ignore())
+                .ForMember(dest => dest.Profesionales, opt => opt.Ignore());
 
-            CreateMap<Reunion, ReunionResponseDto>();
+            CreateMap<Reunion, ReunionResponseDto>()
+                .ForMember(
+                    dest => dest.Profesionales,
+                    opt => opt.MapFrom(src => src.Profesionales
+                        .Where(rp => rp.Profesional != null)
+                        .Select(rp => rp.Profesional!)));
 
             // Mapeos de Notificacion
             CreateMap<CrearNotificacionDto, Notificacion>()
