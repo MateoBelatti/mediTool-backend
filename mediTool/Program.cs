@@ -86,10 +86,13 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddCors(options =>
 {
+    var origenesPermitidos = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? new[] { "http://localhost:5173", "http://127.0.0.1:5173", "http://[::1]:5173" };
+
     options.AddPolicy("AllowLocalhost5173",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(origenesPermitidos)
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -118,9 +121,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
+// El CORS va antes de la redirección HTTPS para que el preflight OPTIONS
+// responda 204 con los headers CORS en vez de un 307 que el navegador no
+// puede resolver de forma consistente.
 app.UseCors("AllowLocalhost5173");
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

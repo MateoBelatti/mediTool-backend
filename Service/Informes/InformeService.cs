@@ -59,21 +59,23 @@ namespace Service.Informes
 
         public async Task<InformeResponseDto> AddAsync(InformeCreateDto dto)
         {
+            Turno? turnoAsignado = null;
+
             if (dto.TurnoId.HasValue)
             {
-                var turno = await _turnoRepository.ObtenerPorId(dto.TurnoId.Value);
-                if (turno == null)
+                turnoAsignado = await _turnoRepository.ObtenerPorId(dto.TurnoId.Value);
+                if (turnoAsignado == null)
                     throw new NotFoundError($"Turno {dto.TurnoId.Value} no encontrado.");
 
-                if (turno.ProfesionalId != dto.ProfesionalId)
+                if (turnoAsignado.ProfesionalId != dto.ProfesionalId)
                     throw new ForbiddenError("El informe solo puede ser creado por el profesional dueño del turno.");
 
-                if (dto.PacienteId.HasValue && dto.PacienteId.Value != turno.PacienteId)
+                if (dto.PacienteId.HasValue && dto.PacienteId.Value != turnoAsignado.PacienteId)
                     throw new ConflictError("El paciente no coincide con el del turno asignado.");
 
-                dto.PacienteId ??= turno.PacienteId;
+                dto.PacienteId ??= turnoAsignado.PacienteId;
 
-                if (await _informeRepository.ExisteParaTurnoAsync(dto.TurnoId.Value))
+                if (turnoAsignado.InformeId.HasValue)
                     throw new ConflictError("El turno seleccionado ya tiene un informe asignado.");
             }
 
@@ -87,7 +89,19 @@ namespace Service.Informes
 
             var created = await _informeRepository.AddAsync(informe);
             await _informeRepository.GuardarCambios();
-            return _mapper.Map<InformeResponseDto>(created);
+
+            if (turnoAsignado != null)
+            {
+                turnoAsignado.InformeId = created.Id;
+                await _turnoRepository.Actualizar(turnoAsignado);
+                await _turnoRepository.GuardarCambios();
+            }
+
+            var result = _mapper.Map<InformeResponseDto>(created);
+            if (turnoAsignado != null)
+                result.TurnoId = turnoAsignado.Id;
+
+            return result;
         }
 
         public async Task<InformeResponseDto?> UpdateAsync(int id, InformeUpdateDto dto)
@@ -95,21 +109,26 @@ namespace Service.Informes
             var existing = await _informeRepository.GetByIdAsync(id);
             if (existing == null) return null;
 
-            if (dto.TurnoId.HasValue && dto.TurnoId != existing.TurnoId)
+            var turnoActual = existing.Turno;
+            var turnoActualId = turnoActual?.Id;
+            var cambioTurno = dto.TurnoId != turnoActualId;
+            Turno? turnoNuevo = null;
+
+            if (dto.TurnoId.HasValue && cambioTurno)
             {
-                var turno = await _turnoRepository.ObtenerPorId(dto.TurnoId.Value);
-                if (turno == null)
+                turnoNuevo = await _turnoRepository.ObtenerPorId(dto.TurnoId.Value);
+                if (turnoNuevo == null)
                     throw new NotFoundError($"Turno {dto.TurnoId.Value} no encontrado.");
 
-                if (turno.ProfesionalId != dto.ProfesionalId)
+                if (turnoNuevo.ProfesionalId != dto.ProfesionalId)
                     throw new ForbiddenError("El informe solo puede ser asignado a un turno del mismo profesional.");
 
-                if (dto.PacienteId.HasValue && dto.PacienteId.Value != turno.PacienteId)
+                if (dto.PacienteId.HasValue && dto.PacienteId.Value != turnoNuevo.PacienteId)
                     throw new ConflictError("El paciente no coincide con el del turno asignado.");
 
-                dto.PacienteId ??= turno.PacienteId;
+                dto.PacienteId ??= turnoNuevo.PacienteId;
 
-                if (await _informeRepository.ExisteParaTurnoAsync(dto.TurnoId.Value, id))
+                if (turnoNuevo.InformeId.HasValue)
                     throw new ConflictError("El turno seleccionado ya tiene un informe asignado.");
             }
 
@@ -121,6 +140,35 @@ namespace Service.Informes
             }
 
             _mapper.Map(dto, existing);
+
+            if (cambioTurno)
+            {
+                if (turnoActual != null)
+                {
+                    turnoActual.InformeId = null;
+                    turnoActual.Informe = null;
+                    await _turnoRepository.Actualizar(turnoActual);
+                }
+
+                if (turnoNuevo != null)
+                {
+                    turnoNuevo.InformeId = id;
+                    turnoNuevo.Informe = existing;
+                    existing.Turno = turnoNuevo;
+                    await _turnoRepository.Actualizar(turnoNuevo);
+                }
+                else
+                {
+                    existing.Turno = null;
+                }
+            }
+            else if (turnoActual != null && turnoActual.InformeId != id)
+            {
+                turnoActual.InformeId = id;
+                turnoActual.Informe = existing;
+                await _turnoRepository.Actualizar(turnoActual);
+            }
+
             var updated = await _informeRepository.UpdateAsync(existing);
             await _informeRepository.GuardarCambios();
             return _mapper.Map<InformeResponseDto>(updated);
@@ -130,6 +178,13 @@ namespace Service.Informes
         {
             var existing = await _informeRepository.GetByIdAsync(id);
             if (existing == null) return false;
+
+            if (existing.Turno != null)
+            {
+                existing.Turno.InformeId = null;
+                existing.Turno.Informe = null;
+                await _turnoRepository.Actualizar(existing.Turno);
+            }
 
             var success = await _informeRepository.DeleteAsync(existing);
             await _informeRepository.GuardarCambios();

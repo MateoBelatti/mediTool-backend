@@ -98,7 +98,9 @@ internal static class TestObjects
         Id = id,
         PacienteId = pacienteId,
         ProfesionalId = profesionalId,
-        TurnoId = turnoId,
+        Turno = turnoId.HasValue
+            ? new Turno { Id = turnoId.Value, PacienteId = pacienteId, ProfesionalId = profesionalId }
+            : null,
         Fecha = fecha ?? new DateOnly(2035, 1, 8),
         Tipo = tipo,
         Contenido = contenido,
