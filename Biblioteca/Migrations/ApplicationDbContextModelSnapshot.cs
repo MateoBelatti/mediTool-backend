@@ -342,6 +342,23 @@ namespace Biblioteca.Migrations
                     b.ToTable("reunion");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.ReunionProfesional", b =>
+                {
+                    b.Property<int>("ReunionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("reunion_id");
+
+                    b.Property<int>("ProfesionalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("profesional_id");
+
+                    b.HasKey("ReunionId", "ProfesionalId");
+
+                    b.HasIndex("ProfesionalId");
+
+                    b.ToTable("reunion_profesional");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
                 {
                     b.Property<int>("Id")
@@ -525,6 +542,25 @@ namespace Biblioteca.Migrations
                     b.Navigation("Profesional");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.ReunionProfesional", b =>
+                {
+                    b.HasOne("Biblioteca.Entities.Profesional", "Profesional")
+                        .WithMany("ReunionesAsignadas")
+                        .HasForeignKey("ProfesionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Biblioteca.Entities.Reunion", "Reunion")
+                        .WithMany("Profesionales")
+                        .HasForeignKey("ReunionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Profesional");
+
+                    b.Navigation("Reunion");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
                 {
                     b.HasOne("Biblioteca.Entities.Informe", "Informe")
@@ -598,6 +634,13 @@ namespace Biblioteca.Migrations
                     b.Navigation("PacienteProfesionales");
 
                     b.Navigation("Reuniones");
+
+                    b.Navigation("ReunionesAsignadas");
+                });
+
+            modelBuilder.Entity("Biblioteca.Entities.Reunion", b =>
+                {
+                    b.Navigation("Profesionales");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.TurnoFijo", b =>

@@ -20,6 +20,7 @@ namespace Biblioteca.Repository
         //Tablas Branch feature/informe-reuniones
         public DbSet<Informe> Informes { get; set; }
         public DbSet<Reunion> Reuniones { get; set; }
+        public DbSet<ReunionProfesional> ReunionProfesionales { get; set; }
 
         // Tablas Branch feature/notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
@@ -84,6 +85,25 @@ namespace Biblioteca.Repository
                 .WithMany(p => p.Reuniones)
                 .HasForeignKey(r => r.ProfesionalId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Reunion-Profesional many-to-many relationship
+            modelBuilder.Entity<ReunionProfesional>()
+                .HasKey(rp => new { rp.ReunionId, rp.ProfesionalId });
+
+            modelBuilder.Entity<ReunionProfesional>()
+                .HasOne(rp => rp.Reunion)
+                .WithMany(r => r.Profesionales)
+                .HasForeignKey(rp => rp.ReunionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReunionProfesional>()
+                .HasOne(rp => rp.Profesional)
+                .WithMany(p => p.ReunionesAsignadas)
+                .HasForeignKey(rp => rp.ProfesionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReunionProfesional>()
+                .HasIndex(rp => rp.ProfesionalId);
 
             // Configure TurnoFijo relationships
             modelBuilder.Entity<TurnoFijo>()
