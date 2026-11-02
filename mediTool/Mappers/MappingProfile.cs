@@ -57,6 +57,7 @@ namespace mediTool.Mappers
             // Mapeos de Turno
             CreateMap<CrearTurnoDto, Turno>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.InformeId, opt => opt.Ignore())
                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado.ToString()));
 
             // Mapeos de salida (response DTOs)
@@ -81,7 +82,10 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Profesional, opt => opt.Ignore())
                 .ForMember(dest => dest.Turno, opt => opt.Ignore());
 
-            CreateMap<Informe, InformeResponseDto>();
+            CreateMap<Informe, InformeResponseDto>()
+                .ForMember(
+                    dest => dest.TurnoId,
+                    opt => opt.MapFrom(src => src.Turno != null ? src.Turno.Id : (int?)null));
 
             // Mapeos de Reunion
             CreateMap<ReunionCreateDto, Reunion>()

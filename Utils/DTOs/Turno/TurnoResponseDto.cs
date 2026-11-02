@@ -16,6 +16,7 @@ namespace Utils.DTOs.Turno
         public DateTime FechaRegistro { get; set; }
         public DateTime? FechaRegistroAsistencia { get; set; }
         public string? Observaciones { get; set; }
+        public int? InformeId { get; set; }
         public PacienteResumenDto? Paciente { get; set; }
         public ProfesionalResumenDto? Profesional { get; set; }
     }
