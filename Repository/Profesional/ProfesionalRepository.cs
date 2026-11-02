@@ -101,5 +101,17 @@ namespace Repository.Profesionales
         {
             return await _context.Profesionales.ToListAsync();
         }
+
+        public async Task<IEnumerable<Profesional>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            ArgumentNullException.ThrowIfNull(ids, nameof(ids));
+            var idsDistintos = ids.Distinct().ToList();
+            if (idsDistintos.Count == 0)
+                return new List<Profesional>();
+
+            return await _context.Profesionales
+                .Where(p => idsDistintos.Contains(p.Id))
+                .ToListAsync();
+        }
     }
 }
