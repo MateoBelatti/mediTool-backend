@@ -1,8 +1,10 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using NSubstitute;
+using Utils.DTOs.Comun;
 using Utils.DTOs.Informe;
 using Utils.DTOs.Notificacion;
+using Utils.DTOs.Reunion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
 
@@ -69,6 +71,22 @@ internal static class MapperStub
             {
                 AplicarEdicionInforme(ci.Arg<InformeUpdateDto>(), ci.Arg<Informe>());
                 return ci.Arg<Informe>();
+            });
+
+        mapper.Map<Reunion>(Arg.Any<ReunionCreateDto>())
+            .Returns(ci => ToReunion(ci.Arg<ReunionCreateDto>()));
+
+        mapper.Map<ReunionResponseDto>(Arg.Any<Reunion>())
+            .Returns(ci => ToReunionDto(ci.Arg<Reunion>()));
+
+        mapper.Map<IEnumerable<ReunionResponseDto>>(Arg.Any<IEnumerable<Reunion>>())
+            .Returns(ci => ci.Arg<IEnumerable<Reunion>>().Select(ToReunionDto).ToList());
+
+        mapper.Map(Arg.Any<ReunionUpdateDto>(), Arg.Any<Reunion>())
+            .Returns(ci =>
+            {
+                AplicarEdicionReunion(ci.Arg<ReunionUpdateDto>(), ci.Arg<Reunion>());
+                return ci.Arg<Reunion>();
             });
 
         return mapper;
@@ -188,5 +206,43 @@ internal static class MapperStub
         informe.Tipo = dto.Tipo;
         informe.Contenido = dto.Contenido;
         informe.Estado = dto.Estado;
+    }
+
+    private static Reunion ToReunion(ReunionCreateDto dto) => new()
+    {
+        Titulo = dto.Titulo,
+        FechaHora = dto.FechaHora,
+        Modalidad = dto.Modalidad,
+        Descripcion = dto.Descripcion,
+        ProfesionalId = dto.ProfesionalId
+    };
+
+    private static ReunionResponseDto ToReunionDto(Reunion reunion) => new()
+    {
+        Id = reunion.Id,
+        Titulo = reunion.Titulo,
+        FechaHora = reunion.FechaHora,
+        Modalidad = reunion.Modalidad,
+        Descripcion = reunion.Descripcion,
+        ProfesionalId = reunion.ProfesionalId,
+        CreatedAt = reunion.CreatedAt,
+        Profesionales = reunion.Profesionales
+            .Where(rp => rp.Profesional != null)
+            .Select(rp => new ProfesionalResumenDto
+            {
+                Id = rp.Profesional.Id,
+                Nombre = rp.Profesional.Nombre,
+                Apellido = rp.Profesional.Apellido
+            })
+            .ToList()
+    };
+
+    private static void AplicarEdicionReunion(ReunionUpdateDto dto, Reunion reunion)
+    {
+        reunion.Titulo = dto.Titulo;
+        reunion.FechaHora = dto.FechaHora;
+        reunion.Modalidad = dto.Modalidad;
+        reunion.Descripcion = dto.Descripcion;
+        reunion.ProfesionalId = dto.ProfesionalId;
     }
 }
