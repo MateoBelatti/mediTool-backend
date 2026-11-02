@@ -100,7 +100,8 @@ internal static class MapperStub
         Facturable = turno.Facturable,
         FechaRegistro = turno.FechaRegistro,
         FechaRegistroAsistencia = turno.FechaRegistroAsistencia,
-        Observaciones = turno.Observaciones
+        Observaciones = turno.Observaciones,
+        InformeId = turno.InformeId
     };
 
     private static TurnoFijo ToTurnoFijo(CrearTurnoFijoDto dto) => new()
@@ -160,7 +161,6 @@ internal static class MapperStub
     {
         PacienteId = dto.PacienteId,
         ProfesionalId = dto.ProfesionalId,
-        TurnoId = dto.TurnoId,
         Fecha = dto.Fecha,
         Tipo = dto.Tipo,
         Contenido = dto.Contenido,
@@ -172,7 +172,7 @@ internal static class MapperStub
         Id = informe.Id,
         PacienteId = informe.PacienteId,
         ProfesionalId = informe.ProfesionalId,
-        TurnoId = informe.TurnoId,
+        TurnoId = informe.Turno?.Id,
         Fecha = informe.Fecha,
         Tipo = informe.Tipo,
         Contenido = informe.Contenido,
@@ -184,7 +184,6 @@ internal static class MapperStub
     {
         informe.PacienteId = dto.PacienteId;
         informe.ProfesionalId = dto.ProfesionalId;
-        informe.TurnoId = dto.TurnoId;
         informe.Fecha = dto.Fecha;
         informe.Tipo = dto.Tipo;
         informe.Contenido = dto.Contenido;
