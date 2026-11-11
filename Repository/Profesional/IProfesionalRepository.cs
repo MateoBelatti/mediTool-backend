@@ -15,6 +15,7 @@ namespace Repository.Profesionales
         Task VincularPacienteAsync(int profesionalId, int pacienteId);
         Task<bool> DesvincularPacienteAsync(int profesionalId, int pacienteId);
         Task<IEnumerable<Profesional>> GetAllAsync();
+        Task<IEnumerable<Profesional>> GetByIdsAsync(IEnumerable<int> ids);
         Task GuardarCambios();
     }
 }

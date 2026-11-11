@@ -59,16 +59,21 @@ public class InformeServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_ConTurnoValidoDelMismoProfesional_CreaInformeConTurnoId()
+    public async Task AddAsync_ConTurnoValidoDelMismoProfesional_AsignaInformeIdAlTurno()
     {
         // Arrange
         const int turnoId = 15;
+        const int informeId = 7;
         SetupPacienteVinculado();
         var turno = TestObjects.Turno(id: turnoId, pacienteId: TestObjects.PacienteId, profesionalId: TestObjects.ProfesionalId);
         _turnoRepository.ObtenerPorId(turnoId).Returns(turno);
-        _informeRepository.ExisteParaTurnoAsync(turnoId).Returns(false);
         _informeRepository.AddAsync(Arg.Any<Informe>())
-            .Returns(ci => ci.Arg<Informe>());
+            .Returns(ci =>
+            {
+                var informe = ci.Arg<Informe>();
+                informe.Id = informeId;
+                return informe;
+            });
 
         var dto = DtoCreacionValido(turnoId: turnoId);
 
@@ -78,8 +83,11 @@ public class InformeServiceTests
         // Assert
         result.Should().NotBeNull();
         result.TurnoId.Should().Be(turnoId);
-        await _informeRepository.Received(1).AddAsync(Arg.Is<Informe>(i => i.TurnoId == turnoId));
+        turno.InformeId.Should().Be(informeId);
+        await _informeRepository.Received(1).AddAsync(Arg.Is<Informe>(i => i.Turno == null));
         await _informeRepository.Received(1).GuardarCambios();
+        await _turnoRepository.Received(1).Actualizar(turno);
+        await _turnoRepository.Received(1).GuardarCambios();
     }
 
     [Fact]
@@ -150,7 +158,6 @@ public class InformeServiceTests
         SetupPacienteVinculado(TestObjects.PacienteId, TestObjects.ProfesionalId);
         var turno = TestObjects.Turno(id: turnoId, pacienteId: TestObjects.PacienteId, profesionalId: TestObjects.ProfesionalId);
         _turnoRepository.ObtenerPorId(turnoId).Returns(turno);
-        _informeRepository.ExisteParaTurnoAsync(turnoId).Returns(false);
         _informeRepository.AddAsync(Arg.Any<Informe>())
             .Returns(ci => ci.Arg<Informe>());
 
@@ -170,8 +177,8 @@ public class InformeServiceTests
         // Arrange
         const int turnoId = 15;
         var turno = TestObjects.Turno(id: turnoId, pacienteId: TestObjects.PacienteId, profesionalId: TestObjects.ProfesionalId);
+        turno.InformeId = 99;
         _turnoRepository.ObtenerPorId(turnoId).Returns(turno);
-        _informeRepository.ExisteParaTurnoAsync(turnoId).Returns(true);
 
         var dto = DtoCreacionValido(turnoId: turnoId);
 
@@ -229,8 +236,8 @@ public class InformeServiceTests
         _informeRepository.GetByIdAsync(informeId).Returns(existing);
 
         var turnoNuevo = TestObjects.Turno(id: turnoNuevoId, pacienteId: TestObjects.PacienteId, profesionalId: TestObjects.ProfesionalId);
+        turnoNuevo.InformeId = 99;
         _turnoRepository.ObtenerPorId(turnoNuevoId).Returns(turnoNuevo);
-        _informeRepository.ExisteParaTurnoAsync(turnoNuevoId, informeId).Returns(true);
 
         var dto = new InformeUpdateDto
         {
@@ -250,6 +257,81 @@ public class InformeServiceTests
         await act.Should().ThrowAsync<ConflictError>()
             .WithMessage("*ya tiene un informe asignado*");
         await _informeRepository.DidNotReceive().UpdateAsync(Arg.Any<Informe>());
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ReasignaTurno_LimpiaAnteriorYAsignaNuevo()
+    {
+        // Arrange
+        const int informeId = 1;
+        const int turnoAnteriorId = 10;
+        const int turnoNuevoId = 20;
+
+        var existing = TestObjects.Informe(id: informeId, turnoId: turnoAnteriorId, profesionalId: TestObjects.ProfesionalId);
+        var turnoAnterior = existing.Turno!;
+        turnoAnterior.InformeId = informeId;
+        _informeRepository.GetByIdAsync(informeId).Returns(existing);
+
+        var turnoNuevo = TestObjects.Turno(id: turnoNuevoId, pacienteId: TestObjects.PacienteId, profesionalId: TestObjects.ProfesionalId);
+        _turnoRepository.ObtenerPorId(turnoNuevoId).Returns(turnoNuevo);
+        _informeRepository.UpdateAsync(Arg.Any<Informe>())
+            .Returns(ci => ci.Arg<Informe>());
+
+        var dto = new InformeUpdateDto
+        {
+            PacienteId = TestObjects.PacienteId,
+            ProfesionalId = TestObjects.ProfesionalId,
+            TurnoId = turnoNuevoId,
+            Fecha = new DateOnly(2035, 1, 8),
+            Tipo = "Evolución",
+            Contenido = "Editado",
+            Estado = "Completado"
+        };
+
+        // Act
+        await CrearServicio().UpdateAsync(informeId, dto);
+
+        // Assert
+        turnoAnterior.InformeId.Should().BeNull();
+        turnoNuevo.InformeId.Should().Be(informeId);
+        await _turnoRepository.Received(1).Actualizar(turnoAnterior);
+        await _turnoRepository.Received(1).Actualizar(turnoNuevo);
+        await _informeRepository.Received(1).UpdateAsync(existing);
+        await _informeRepository.Received(1).GuardarCambios();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_QuitaTurno_LimpiaInformeIdAnterior()
+    {
+        // Arrange
+        const int informeId = 1;
+        const int turnoAnteriorId = 10;
+
+        var existing = TestObjects.Informe(id: informeId, turnoId: turnoAnteriorId, profesionalId: TestObjects.ProfesionalId);
+        existing.Turno!.InformeId = informeId;
+        _informeRepository.GetByIdAsync(informeId).Returns(existing);
+        _informeRepository.UpdateAsync(Arg.Any<Informe>())
+            .Returns(ci => ci.Arg<Informe>());
+
+        var dto = new InformeUpdateDto
+        {
+            PacienteId = TestObjects.PacienteId,
+            ProfesionalId = TestObjects.ProfesionalId,
+            TurnoId = null,
+            Fecha = new DateOnly(2035, 1, 8),
+            Tipo = "Evolución",
+            Contenido = "Editado",
+            Estado = "Completado"
+        };
+
+        // Act
+        await CrearServicio().UpdateAsync(informeId, dto);
+
+        // Assert
+        existing.Turno.Should().BeNull();
+        await _turnoRepository.Received(1).Actualizar(Arg.Is<Turno>(t =>
+            t.Id == turnoAnteriorId && t.InformeId == null));
+        await _informeRepository.Received(1).UpdateAsync(existing);
     }
 
     [Fact]

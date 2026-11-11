@@ -61,18 +61,11 @@ namespace Biblioteca.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("tipo");
 
-                    b.Property<int?>("TurnoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("turno_id");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PacienteId");
 
                     b.HasIndex("ProfesionalId");
-
-                    b.HasIndex("TurnoId")
-                        .IsUnique();
 
                     b.ToTable("informe");
                 });
@@ -349,6 +342,23 @@ namespace Biblioteca.Migrations
                     b.ToTable("reunion");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.ReunionProfesional", b =>
+                {
+                    b.Property<int>("ReunionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("reunion_id");
+
+                    b.Property<int>("ProfesionalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("profesional_id");
+
+                    b.HasKey("ReunionId", "ProfesionalId");
+
+                    b.HasIndex("ProfesionalId");
+
+                    b.ToTable("reunion_profesional");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
                 {
                     b.Property<int>("Id")
@@ -384,6 +394,10 @@ namespace Biblioteca.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_registro_asistencia");
 
+                    b.Property<int?>("InformeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("informe_id");
+
                     b.Property<bool>("Justificada")
                         .HasColumnType("boolean")
                         .HasColumnName("justificada");
@@ -406,6 +420,9 @@ namespace Biblioteca.Migrations
                         .HasColumnName("turno_fijo_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("InformeId")
+                        .IsUnique();
 
                     b.HasIndex("PacienteId");
 
@@ -479,16 +496,9 @@ namespace Biblioteca.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Biblioteca.Entities.Turno", "Turno")
-                        .WithOne("Informe")
-                        .HasForeignKey("Biblioteca.Entities.Informe", "TurnoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Paciente");
 
                     b.Navigation("Profesional");
-
-                    b.Navigation("Turno");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.Notificacion", b =>
@@ -532,8 +542,32 @@ namespace Biblioteca.Migrations
                     b.Navigation("Profesional");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.ReunionProfesional", b =>
+                {
+                    b.HasOne("Biblioteca.Entities.Profesional", "Profesional")
+                        .WithMany("ReunionesAsignadas")
+                        .HasForeignKey("ProfesionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Biblioteca.Entities.Reunion", "Reunion")
+                        .WithMany("Profesionales")
+                        .HasForeignKey("ReunionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Profesional");
+
+                    b.Navigation("Reunion");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
                 {
+                    b.HasOne("Biblioteca.Entities.Informe", "Informe")
+                        .WithOne("Turno")
+                        .HasForeignKey("Biblioteca.Entities.Turno", "InformeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Biblioteca.Entities.Paciente", "Paciente")
                         .WithMany()
                         .HasForeignKey("PacienteId")
@@ -550,6 +584,8 @@ namespace Biblioteca.Migrations
                         .WithMany("Turnos")
                         .HasForeignKey("TurnoFijoId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Informe");
 
                     b.Navigation("Paciente");
 
@@ -577,6 +613,11 @@ namespace Biblioteca.Migrations
                     b.Navigation("Profesional");
                 });
 
+            modelBuilder.Entity("Biblioteca.Entities.Informe", b =>
+                {
+                    b.Navigation("Turno");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Paciente", b =>
                 {
                     b.Navigation("Informes");
@@ -593,11 +634,13 @@ namespace Biblioteca.Migrations
                     b.Navigation("PacienteProfesionales");
 
                     b.Navigation("Reuniones");
+
+                    b.Navigation("ReunionesAsignadas");
                 });
 
-            modelBuilder.Entity("Biblioteca.Entities.Turno", b =>
+            modelBuilder.Entity("Biblioteca.Entities.Reunion", b =>
                 {
-                    b.Navigation("Informe");
+                    b.Navigation("Profesionales");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.TurnoFijo", b =>

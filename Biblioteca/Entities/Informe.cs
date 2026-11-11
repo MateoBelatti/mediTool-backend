@@ -35,9 +35,6 @@ namespace Biblioteca.Entities
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
 
-        [Column("turno_id")]
-        public int? TurnoId { get; set; }
-
         // Navigation properties
         public virtual Paciente? Paciente { get; set; }
         public virtual Profesional? Profesional { get; set; }

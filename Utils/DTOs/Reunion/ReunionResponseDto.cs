@@ -1,3 +1,5 @@
+using Utils.DTOs.Comun;
+
 namespace Utils.DTOs.Reunion
 {
     public class ReunionResponseDto
@@ -9,5 +11,6 @@ namespace Utils.DTOs.Reunion
         public string? Descripcion { get; set; }
         public int ProfesionalId { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public List<ProfesionalResumenDto> Profesionales { get; set; } = new();
     }
 }
