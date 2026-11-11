@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Service.Reuniones;
 using Utils.DTOs.Reunion;
+using Utils.Exceptions;
 using Utils.Helpers;
 
 namespace mediTool.Controllers
@@ -35,7 +36,7 @@ namespace mediTool.Controllers
                 return NotFound();
             }
 
-            User.EnsureOwnership(reunion.ProfesionalId);
+            EnsurePuedeVer(reunion);
             return Ok(reunion);
         }
 
@@ -55,8 +56,10 @@ namespace mediTool.Controllers
                 return BadRequest(ModelState);
             }
 
+            dto.ProfesionalId = User.GetUserId();
+
             if (!User.IsAdmin())
-                dto.ProfesionalId = User.GetUserId();
+                dto.ProfesionalesIds = new List<int> { User.GetUserId() };
 
             var result = await _reunionService.AddAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -78,8 +81,15 @@ namespace mediTool.Controllers
 
             User.EnsureOwnership(existing.ProfesionalId);
 
+            dto.ProfesionalId = existing.ProfesionalId;
+
             if (!User.IsAdmin())
-                dto.ProfesionalId = User.GetUserId();
+            {
+                dto.ProfesionalesIds = existing.Profesionales
+                    .Select(p => p.Id)
+                    .DefaultIfEmpty(User.GetUserId())
+                    .ToList();
+            }
 
             var result = await _reunionService.UpdateAsync(id, dto);
             return Ok(result);
@@ -96,8 +106,21 @@ namespace mediTool.Controllers
 
             User.EnsureOwnership(existing.ProfesionalId);
 
-            var success = await _reunionService.DeleteAsync(id);
+            await _reunionService.DeleteAsync(id);
             return NoContent();
+        }
+
+        private void EnsurePuedeVer(ReunionResponseDto reunion)
+        {
+            if (User.IsAdmin())
+                return;
+
+            var userId = User.GetUserId();
+            if (reunion.ProfesionalId != userId
+                && !reunion.Profesionales.Any(p => p.Id == userId))
+            {
+                throw new ForbiddenError("No tiene permisos para acceder a este recurso.");
+            }
         }
     }
 }

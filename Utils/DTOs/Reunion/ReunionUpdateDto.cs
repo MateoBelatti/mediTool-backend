@@ -18,5 +18,7 @@ namespace Utils.DTOs.Reunion
 
         [Required]
         public int ProfesionalId { get; set; }
+
+        public List<int> ProfesionalesIds { get; set; } = new();
     }
 }

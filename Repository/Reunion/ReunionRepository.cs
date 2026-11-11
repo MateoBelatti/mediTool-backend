@@ -15,22 +15,44 @@ namespace Repository.Reuniones
 
         public async Task<IEnumerable<Reunion>> GetAllAsync()
         {
-            return await _context.Reuniones.ToListAsync();
+            return await _context.Reuniones
+                .AsNoTracking()
+                .Include(r => r.Profesional)
+                .Include(r => r.Profesionales)
+                    .ThenInclude(rp => rp.Profesional)
+                .OrderBy(r => r.FechaHora)
+                .ToListAsync();
         }
 
         public async Task<Reunion?> GetByIdAsync(int id)
         {
             if (id <= 0)
                 throw new ArgumentOutOfRangeException(nameof(id), "El id debe ser mayor que 0.");
-            return await _context.Reuniones.FindAsync(id);
+
+            return await _context.Reuniones
+                .Include(r => r.Profesional)
+                .Include(r => r.Profesionales)
+                    .ThenInclude(rp => rp.Profesional)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
 
         public async Task<IEnumerable<Reunion>> GetByProfesionalIdAsync(int profesionalId)
         {
             if (profesionalId <= 0)
                 throw new ArgumentOutOfRangeException(nameof(profesionalId), "El id debe ser mayor que 0.");
+
+            var reunionIdsAsignadas = _context.ReunionProfesionales
+                .Where(rp => rp.ProfesionalId == profesionalId)
+                .Select(rp => rp.ReunionId);
+
             return await _context.Reuniones
-                .Where(r => r.ProfesionalId == profesionalId)
+                .AsNoTracking()
+                .Include(r => r.Profesional)
+                .Include(r => r.Profesionales)
+                    .ThenInclude(rp => rp.Profesional)
+                .Where(r => r.ProfesionalId == profesionalId
+                    || reunionIdsAsignadas.Contains(r.Id))
+                .OrderBy(r => r.FechaHora)
                 .ToListAsync();
         }
 
@@ -53,7 +75,8 @@ namespace Repository.Reuniones
             var existe = await _context.Reuniones.AnyAsync(r => r.Id == entity.Id);
             if (!existe)
                 throw new KeyNotFoundException($"Reunion {entity.Id} no encontrado.");
-            _context.Reuniones.Update(entity);
+
+            _context.Entry(entity).State = EntityState.Modified;
             return entity;
         }
 
@@ -62,8 +85,14 @@ namespace Repository.Reuniones
             ArgumentNullException.ThrowIfNull(entity, nameof(entity));
             if (entity.Id <= 0)
                 throw new ArgumentOutOfRangeException(nameof(entity.Id), "El id debe ser mayor que 0.");
-            var existing = await _context.Reuniones.FindAsync(entity.Id);
+
+            var existing = await _context.Reuniones
+                .Include(r => r.Profesionales)
+                .FirstOrDefaultAsync(r => r.Id == entity.Id);
+
             if (existing == null) return false;
+
+            _context.ReunionProfesionales.RemoveRange(existing.Profesionales);
             _context.Reuniones.Remove(existing);
             return true;
         }

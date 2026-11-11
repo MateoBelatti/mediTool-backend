@@ -1,8 +1,10 @@
 using AutoMapper;
 using Biblioteca.Entities;
 using NSubstitute;
+using Utils.DTOs.Comun;
 using Utils.DTOs.Informe;
 using Utils.DTOs.Notificacion;
+using Utils.DTOs.Reunion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
 
@@ -71,6 +73,22 @@ internal static class MapperStub
                 return ci.Arg<Informe>();
             });
 
+        mapper.Map<Reunion>(Arg.Any<ReunionCreateDto>())
+            .Returns(ci => ToReunion(ci.Arg<ReunionCreateDto>()));
+
+        mapper.Map<ReunionResponseDto>(Arg.Any<Reunion>())
+            .Returns(ci => ToReunionDto(ci.Arg<Reunion>()));
+
+        mapper.Map<IEnumerable<ReunionResponseDto>>(Arg.Any<IEnumerable<Reunion>>())
+            .Returns(ci => ci.Arg<IEnumerable<Reunion>>().Select(ToReunionDto).ToList());
+
+        mapper.Map(Arg.Any<ReunionUpdateDto>(), Arg.Any<Reunion>())
+            .Returns(ci =>
+            {
+                AplicarEdicionReunion(ci.Arg<ReunionUpdateDto>(), ci.Arg<Reunion>());
+                return ci.Arg<Reunion>();
+            });
+
         return mapper;
     }
 
@@ -100,7 +118,8 @@ internal static class MapperStub
         Facturable = turno.Facturable,
         FechaRegistro = turno.FechaRegistro,
         FechaRegistroAsistencia = turno.FechaRegistroAsistencia,
-        Observaciones = turno.Observaciones
+        Observaciones = turno.Observaciones,
+        InformeId = turno.InformeId
     };
 
     private static TurnoFijo ToTurnoFijo(CrearTurnoFijoDto dto) => new()
@@ -160,7 +179,6 @@ internal static class MapperStub
     {
         PacienteId = dto.PacienteId,
         ProfesionalId = dto.ProfesionalId,
-        TurnoId = dto.TurnoId,
         Fecha = dto.Fecha,
         Tipo = dto.Tipo,
         Contenido = dto.Contenido,
@@ -172,7 +190,7 @@ internal static class MapperStub
         Id = informe.Id,
         PacienteId = informe.PacienteId,
         ProfesionalId = informe.ProfesionalId,
-        TurnoId = informe.TurnoId,
+        TurnoId = informe.Turno?.Id,
         Fecha = informe.Fecha,
         Tipo = informe.Tipo,
         Contenido = informe.Contenido,
@@ -184,10 +202,47 @@ internal static class MapperStub
     {
         informe.PacienteId = dto.PacienteId;
         informe.ProfesionalId = dto.ProfesionalId;
-        informe.TurnoId = dto.TurnoId;
         informe.Fecha = dto.Fecha;
         informe.Tipo = dto.Tipo;
         informe.Contenido = dto.Contenido;
         informe.Estado = dto.Estado;
+    }
+
+    private static Reunion ToReunion(ReunionCreateDto dto) => new()
+    {
+        Titulo = dto.Titulo,
+        FechaHora = dto.FechaHora,
+        Modalidad = dto.Modalidad,
+        Descripcion = dto.Descripcion,
+        ProfesionalId = dto.ProfesionalId
+    };
+
+    private static ReunionResponseDto ToReunionDto(Reunion reunion) => new()
+    {
+        Id = reunion.Id,
+        Titulo = reunion.Titulo,
+        FechaHora = reunion.FechaHora,
+        Modalidad = reunion.Modalidad,
+        Descripcion = reunion.Descripcion,
+        ProfesionalId = reunion.ProfesionalId,
+        CreatedAt = reunion.CreatedAt,
+        Profesionales = reunion.Profesionales
+            .Where(rp => rp.Profesional != null)
+            .Select(rp => new ProfesionalResumenDto
+            {
+                Id = rp.Profesional.Id,
+                Nombre = rp.Profesional.Nombre,
+                Apellido = rp.Profesional.Apellido
+            })
+            .ToList()
+    };
+
+    private static void AplicarEdicionReunion(ReunionUpdateDto dto, Reunion reunion)
+    {
+        reunion.Titulo = dto.Titulo;
+        reunion.FechaHora = dto.FechaHora;
+        reunion.Modalidad = dto.Modalidad;
+        reunion.Descripcion = dto.Descripcion;
+        reunion.ProfesionalId = dto.ProfesionalId;
     }
 }

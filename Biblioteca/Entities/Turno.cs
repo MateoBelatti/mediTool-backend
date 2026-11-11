@@ -51,6 +51,9 @@ namespace Biblioteca.Entities
         [MaxLength(500)]
         public string? Observaciones { get; set; }
 
+        [Column("informe_id")]
+        public int? InformeId { get; set; }
+
         // Navigation properties
         [ForeignKey("TurnoFijoId")]
         public TurnoFijo? TurnoFijo { get; set; }

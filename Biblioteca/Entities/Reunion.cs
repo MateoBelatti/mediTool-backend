@@ -33,7 +33,8 @@ namespace Biblioteca.Entities
         [Column("profesional_id")]
         public int ProfesionalId { get; set; }
 
-        // Navigation property
+        // Navigation properties
         public virtual Profesional? Profesional { get; set; }
+        public ICollection<ReunionProfesional> Profesionales { get; set; } = new List<ReunionProfesional>();
     }
 }
