@@ -42,3 +42,9 @@ Desktop.ini
 **/appsettings.json
 **/appsettings.Development.json
 **/appsettings.*.json
+
+# Agentes / opencode
+AGENTS.md
+opencode.json
+opencode.jsonc
+.opencode/

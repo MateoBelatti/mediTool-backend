@@ -12,6 +12,8 @@ using Utils.DTOs.Informe;
 using Utils.DTOs.Reunion;
 // Branch feature/notificaciones
 using Utils.DTOs.Notificacion;
+// Branch feature/documentos
+using Utils.DTOs.Documento;
 
 namespace mediTool.Mappers
 {
@@ -115,6 +117,13 @@ namespace mediTool.Mappers
                 .ForMember(dest => dest.Profesional, opt => opt.Ignore());
 
             CreateMap<Notificacion, NotificacionDto>();
+
+            // Mapeos de DocumentoPaciente
+            CreateMap<DocumentoPaciente, DocumentoPacienteResponseDto>()
+                .ForMember(dest => dest.ProfesionalNombre, opt => opt.MapFrom(src =>
+                    src.Profesional == null
+                        ? null
+                        : $"{src.Profesional.Nombre} {src.Profesional.Apellido}".Trim()));
 
         }
     }

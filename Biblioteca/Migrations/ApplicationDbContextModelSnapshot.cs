@@ -22,6 +22,88 @@ namespace Biblioteca.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Biblioteca.Entities.Archivo", b =>
+                {
+                    b.Property<string>("Clave")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("clave");
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("contenido");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("Clave");
+
+                    b.ToTable("archivo");
+                });
+
+            modelBuilder.Entity("Biblioteca.Entities.DocumentoPaciente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArchivoClave")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("archivo_clave");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("content_type");
+
+                    b.Property<string>("Extension")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("extension");
+
+                    b.Property<DateTime>("FechaSubida")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_subida");
+
+                    b.Property<string>("NombreOriginal")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("nombre_original");
+
+                    b.Property<int>("PacienteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paciente_id");
+
+                    b.Property<int>("ProfesionalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("profesional_id");
+
+                    b.Property<long>("TamanoBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("tamano_bytes");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArchivoClave")
+                        .IsUnique();
+
+                    b.HasIndex("PacienteId");
+
+                    b.HasIndex("ProfesionalId");
+
+                    b.ToTable("documento_paciente");
+                });
+
             modelBuilder.Entity("Biblioteca.Entities.Informe", b =>
                 {
                     b.Property<int>("Id")
@@ -481,6 +563,33 @@ namespace Biblioteca.Migrations
                     b.HasIndex("ProfesionalId");
 
                     b.ToTable("turno_fijo");
+                });
+
+            modelBuilder.Entity("Biblioteca.Entities.DocumentoPaciente", b =>
+                {
+                    b.HasOne("Biblioteca.Entities.Archivo", "Archivo")
+                        .WithOne()
+                        .HasForeignKey("Biblioteca.Entities.DocumentoPaciente", "ArchivoClave")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Biblioteca.Entities.Paciente", "Paciente")
+                        .WithMany()
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Biblioteca.Entities.Profesional", "Profesional")
+                        .WithMany()
+                        .HasForeignKey("ProfesionalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Archivo");
+
+                    b.Navigation("Paciente");
+
+                    b.Navigation("Profesional");
                 });
 
             modelBuilder.Entity("Biblioteca.Entities.Informe", b =>
