@@ -13,9 +13,12 @@ using Service.Turnos;
 using Repository.Informes;
 using Repository.Reuniones;
 using Repository.Notificaciones;
+using Repository.Documentos;
+using Repository.Almacenamiento;
 using Service.Informes;
 using Service.Reuniones;
 using Service.Notificaciones;
+using Service.Documentos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
@@ -43,6 +46,8 @@ builder.Services.AddScoped<ITurnoRepository, TurnoRepository>();
 builder.Services.AddScoped<IInformeRepository, InformeRepository>();
 builder.Services.AddScoped<IReunionRepository, ReunionRepository>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
+builder.Services.AddScoped<IDocumentoPacienteRepository, DocumentoPacienteRepository>();
+builder.Services.AddScoped<IArchivoStorage, ArchivoStorage>();
 
 // Inyección de dependencias de Servicios
 builder.Services.AddScoped<IPacienteService, PacienteService>();
@@ -53,6 +58,7 @@ builder.Services.AddScoped<ITurnoService, TurnoService>();
 builder.Services.AddScoped<IInformeService, InformeService>();
 builder.Services.AddScoped<IReunionService, ReunionService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
+builder.Services.AddScoped<IDocumentoPacienteService, DocumentoPacienteService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

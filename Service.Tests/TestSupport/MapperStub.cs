@@ -7,6 +7,7 @@ using Utils.DTOs.Notificacion;
 using Utils.DTOs.Reunion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
+using Utils.DTOs.Documento;
 
 namespace Service.Tests.TestSupport;
 
@@ -88,6 +89,13 @@ internal static class MapperStub
                 AplicarEdicionReunion(ci.Arg<ReunionUpdateDto>(), ci.Arg<Reunion>());
                 return ci.Arg<Reunion>();
             });
+
+        mapper.Map<DocumentoPacienteResponseDto>(Arg.Any<DocumentoPaciente>())
+            .Returns(ci => ToDocumentoDto(ci.Arg<DocumentoPaciente>()));
+
+        mapper.Map<IEnumerable<DocumentoPacienteResponseDto>>(Arg.Any<IEnumerable<DocumentoPaciente>>())
+            .Returns(ci => ci.Arg<IEnumerable<DocumentoPaciente>>().Select(ToDocumentoDto).ToList());
+
 
         return mapper;
     }
@@ -245,4 +253,20 @@ internal static class MapperStub
         reunion.Descripcion = dto.Descripcion;
         reunion.ProfesionalId = dto.ProfesionalId;
     }
+
+    private static DocumentoPacienteResponseDto ToDocumentoDto(DocumentoPaciente documento) => new()
+    {
+        Id = documento.Id,
+        PacienteId = documento.PacienteId,
+        ProfesionalId = documento.ProfesionalId,
+        ProfesionalNombre = documento.Profesional == null
+            ? null
+            : $"{documento.Profesional.Nombre} {documento.Profesional.Apellido}".Trim(),
+        NombreOriginal = documento.NombreOriginal,
+        Extension = documento.Extension,
+        ContentType = documento.ContentType,
+        TamanoBytes = documento.TamanoBytes,
+        FechaSubida = documento.FechaSubida
+    };
+
 }
