@@ -25,6 +25,10 @@ namespace Biblioteca.Repository
         // Tablas Branch feature/notificaciones
         public DbSet<Notificacion> Notificaciones { get; set; }
 
+        // Tablas Branch feature/documentos
+        public DbSet<Archivo> Archivos { get; set; }
+        public DbSet<DocumentoPaciente> DocumentosPaciente { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -164,6 +168,32 @@ namespace Biblioteca.Repository
             // Indice para limpieza/retencion por antiguedad
             modelBuilder.Entity<Notificacion>()
                 .HasIndex(n => n.FechaCreacion);
+
+            // Configure DocumentoPaciente relationships
+            modelBuilder.Entity<DocumentoPaciente>()
+                .HasOne(d => d.Paciente)
+                .WithMany()
+                .HasForeignKey(d => d.PacienteId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DocumentoPaciente>()
+                .HasOne(d => d.Profesional)
+                .WithMany()
+                .HasForeignKey(d => d.ProfesionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DocumentoPaciente>()
+                .HasOne(d => d.Archivo)
+                .WithOne()
+                .HasForeignKey<DocumentoPaciente>(d => d.ArchivoClave)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DocumentoPaciente>()
+                .HasIndex(d => d.PacienteId);
+
+            modelBuilder.Entity<DocumentoPaciente>()
+                .HasIndex(d => d.ArchivoClave)
+                .IsUnique();
 
         }
     }
