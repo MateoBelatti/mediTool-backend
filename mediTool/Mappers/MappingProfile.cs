@@ -14,6 +14,7 @@ using Utils.DTOs.Reunion;
 using Utils.DTOs.Notificacion;
 // Branch feature/documentos
 using Utils.DTOs.Documento;
+using Utils.Helpers;
 
 namespace mediTool.Mappers
 {
@@ -124,6 +125,26 @@ namespace mediTool.Mappers
                     src.Profesional == null
                         ? null
                         : $"{src.Profesional.Nombre} {src.Profesional.Apellido}".Trim()));
+
+            // Mapeos de Historial de Paciente
+            CreateMap<Turno, HistorialPacienteEventoDto>()
+                .ForMember(dest => dest.Tipo, opt => opt.MapFrom(_ => HistorialPacienteEventoDto.TipoTurno))
+                .ForMember(dest => dest.FechaHora, opt => opt.MapFrom(src => src.FechaHora))
+                .ForMember(dest => dest.Profesional, opt => opt.MapFrom(src => src.Profesional))
+                .ForMember(dest => dest.Turno, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.Informe, opt => opt.MapFrom(src => src.Informe))
+                .AfterMap((src, dest) =>
+                {
+                    if (dest.Informe != null)
+                        dest.Informe.TurnoId ??= src.Id;
+                });
+
+            CreateMap<Informe, HistorialPacienteEventoDto>()
+                .ForMember(dest => dest.Tipo, opt => opt.MapFrom(_ => HistorialPacienteEventoDto.TipoInforme))
+                .ForMember(dest => dest.FechaHora, opt => opt.MapFrom(src => DateTimeHelper.LocalAUtc(src.Fecha, TimeSpan.Zero)))
+                .ForMember(dest => dest.Profesional, opt => opt.MapFrom(src => src.Profesional))
+                .ForMember(dest => dest.Turno, opt => opt.Ignore())
+                .ForMember(dest => dest.Informe, opt => opt.MapFrom(src => src));
 
         }
     }

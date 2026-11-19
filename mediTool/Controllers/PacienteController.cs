@@ -13,10 +13,14 @@ namespace mediTool.Controllers
     public class PacienteController : ControllerBase
     {
         private readonly IPacienteService _pacienteService;
+        private readonly IHistorialPacienteService _historialPacienteService;
 
-        public PacienteController(IPacienteService pacienteService)
+        public PacienteController(
+            IPacienteService pacienteService,
+            IHistorialPacienteService historialPacienteService)
         {
             _pacienteService = pacienteService;
+            _historialPacienteService = historialPacienteService;
         }
 
         [Authorize(Policy = "AdminOrProfesional")]
@@ -55,6 +59,33 @@ namespace mediTool.Controllers
                 throw new ForbiddenError("No tiene permisos para acceder a este recurso.");
 
             return Ok(paciente);
+        }
+
+        [HttpGet("{id}/historial")]
+        public async Task<IActionResult> GetHistorial(
+            int id,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string? tipo = null,
+            [FromQuery] string? estado = null,
+            [FromQuery] DateOnly? desde = null,
+            [FromQuery] DateOnly? hasta = null,
+            [FromQuery] bool soloConInforme = false)
+        {
+            if (!User.IsAdmin() && !await _pacienteService.IsVinculadoAsync(id, User.GetUserId()))
+                throw new ForbiddenError("No tiene permisos para acceder a este recurso.");
+
+            var result = await _historialPacienteService.GetHistorialAsync(
+                id,
+                page,
+                pageSize,
+                tipo,
+                estado,
+                desde,
+                hasta,
+                soloConInforme);
+
+            return Ok(result);
         }
 
         [HttpPost]

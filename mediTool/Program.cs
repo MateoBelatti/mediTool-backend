@@ -49,6 +49,7 @@ builder.Services.AddScoped<IArchivoStorage, ArchivoStorage>();
 
 // Inyección de dependencias de Servicios
 builder.Services.AddScoped<IPacienteService, PacienteService>();
+builder.Services.AddScoped<IHistorialPacienteService, HistorialPacienteService>();
 builder.Services.AddScoped<IProfesionalService, ProfesionalService>();
 builder.Services.AddScoped<ITurnoFijoService, TurnoFijoService>();
 builder.Services.AddScoped<IGenerarInstanciasTurnoService, GenerarInstanciasTurnoService>();
