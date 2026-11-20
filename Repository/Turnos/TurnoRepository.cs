@@ -120,6 +120,20 @@ namespace Repository.Turnos
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
+        public async Task<List<Turno>> ObtenerTodosPorPaciente(int pacienteId)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+
+            return await _context.Turnos
+                .Include(t => t.Profesional)
+                .Include(t => t.Informe)
+                .Where(t => t.PacienteId == pacienteId)
+                .OrderByDescending(t => t.FechaHora)
+                .ThenByDescending(t => t.Id)
+                .ToListAsync();
+        }
+
         public async Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null, int? pacienteId = null)
         {
             if (page < 1)
