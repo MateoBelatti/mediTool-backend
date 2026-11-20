@@ -60,6 +60,12 @@ internal sealed class FakeTurnoRepository : ITurnoRepository
     public Task<List<Turno>> ObtenerTodosPorTurnoFijo(int turnoFijoId) =>
         Task.FromResult(_turnos.Where(t => t.TurnoFijoId == turnoFijoId).ToList());
 
+    public Task<List<Turno>> ObtenerTodosPorPaciente(int pacienteId) =>
+        Task.FromResult(_turnos
+            .Where(t => t.PacienteId == pacienteId)
+            .OrderByDescending(t => t.FechaHora)
+            .ToList());
+
     public Task<(IEnumerable<Turno> Items, int TotalItems)> ObtenerPorRangoFecha(
         DateTime desde, DateTime hasta, int page, int pageSize, int? profesionalId = null, int? pacienteId = null) =>
         throw new NotSupportedException("No es necesario para este doble de test.");

@@ -39,6 +39,19 @@ namespace Repository.Informes
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Informe>> GetByPacienteIdAsync(int pacienteId)
+        {
+            if (pacienteId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(pacienteId), "El id debe ser mayor que 0.");
+
+            return await _context.Informes
+                .Include(i => i.Profesional)
+                .Include(i => i.Turno)
+                .Where(i => i.PacienteId == pacienteId ||
+                            (i.Turno != null && i.Turno.PacienteId == pacienteId))
+                .ToListAsync();
+        }
+
         public async Task<Informe?> GetByTurnoIdAsync(int turnoId)
         {
             if (turnoId <= 0)

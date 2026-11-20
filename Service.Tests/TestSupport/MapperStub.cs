@@ -8,6 +8,8 @@ using Utils.DTOs.Reunion;
 using Utils.DTOs.Turno;
 using Utils.DTOs.TurnoFijo;
 using Utils.DTOs.Documento;
+using Utils.DTOs.Paciente;
+using Utils.Helpers;
 
 namespace Service.Tests.TestSupport;
 
@@ -96,6 +98,11 @@ internal static class MapperStub
         mapper.Map<IEnumerable<DocumentoPacienteResponseDto>>(Arg.Any<IEnumerable<DocumentoPaciente>>())
             .Returns(ci => ci.Arg<IEnumerable<DocumentoPaciente>>().Select(ToDocumentoDto).ToList());
 
+        mapper.Map<HistorialPacienteEventoDto>(Arg.Any<Turno>())
+            .Returns(ci => ToHistorialTurno(ci.Arg<Turno>()));
+
+        mapper.Map<HistorialPacienteEventoDto>(Arg.Any<Informe>())
+            .Returns(ci => ToHistorialInforme(ci.Arg<Informe>()));
 
         return mapper;
     }
@@ -253,6 +260,41 @@ internal static class MapperStub
         reunion.Descripcion = dto.Descripcion;
         reunion.ProfesionalId = dto.ProfesionalId;
     }
+
+    private static HistorialPacienteEventoDto ToHistorialTurno(Turno turno)
+    {
+        var dto = new HistorialPacienteEventoDto
+        {
+            Tipo = HistorialPacienteEventoDto.TipoTurno,
+            FechaHora = turno.FechaHora,
+            Profesional = ToProfesionalResumen(turno.Profesional),
+            Turno = ToTurnoDto(turno),
+            Informe = turno.Informe == null ? null : ToInformeDto(turno.Informe)
+        };
+
+        if (dto.Informe != null)
+            dto.Informe.TurnoId ??= turno.Id;
+
+        return dto;
+    }
+
+    private static HistorialPacienteEventoDto ToHistorialInforme(Informe informe) => new()
+    {
+        Tipo = HistorialPacienteEventoDto.TipoInforme,
+        FechaHora = DateTimeHelper.LocalAUtc(informe.Fecha, TimeSpan.Zero),
+        Profesional = ToProfesionalResumen(informe.Profesional),
+        Informe = ToInformeDto(informe)
+    };
+
+    private static ProfesionalResumenDto? ToProfesionalResumen(Profesional? profesional) =>
+        profesional == null
+            ? null
+            : new ProfesionalResumenDto
+            {
+                Id = profesional.Id,
+                Nombre = profesional.Nombre,
+                Apellido = profesional.Apellido
+            };
 
     private static DocumentoPacienteResponseDto ToDocumentoDto(DocumentoPaciente documento) => new()
     {
