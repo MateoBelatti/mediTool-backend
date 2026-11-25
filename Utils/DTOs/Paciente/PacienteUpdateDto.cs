@@ -23,7 +23,8 @@ namespace Utils.DTOs.Paciente
         [MaxLength(30, ErrorMessage = "El teléfono no puede superar los 30 caracteres.")]
         public string? Telefono { get; set; }
 
-        [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido.")]
+        // El email es opcional: el servicio normaliza los valores vacíos a null
+        // y valida el formato recién cuando viene con contenido.
         [MaxLength(150, ErrorMessage = "El email no puede superar los 150 caracteres.")]
         public string? Email { get; set; }
 
