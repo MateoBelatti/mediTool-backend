@@ -10,7 +10,7 @@ namespace Service.Documentos
 {
     public class DocumentoPacienteService : IDocumentoPacienteService
     {
-        public const long MaxArchivoBytes = 10 * 1024 * 1024;
+        public const long MaxArchivoBytes = 25 * 1024 * 1024;
 
         private static readonly HashSet<string> ExtensionesPermitidas = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -80,7 +80,7 @@ namespace Service.Documentos
             if (dto.TamanoBytes <= 0)
                 throw new ValidationError("El archivo está vacío.");
             if (dto.TamanoBytes > MaxArchivoBytes)
-                throw new ValidationError("El archivo supera el tamaño máximo permitido de 10 MB.");
+                throw new ValidationError("El archivo supera el tamaño máximo permitido de 25 MB.");
 
             var nombreOriginal = SanitizarNombre(dto.NombreArchivo);
             var extension = Path.GetExtension(nombreOriginal).ToLowerInvariant();
@@ -107,7 +107,7 @@ namespace Service.Documentos
             if (bytes.Length == 0)
                 throw new ValidationError("El archivo está vacío.");
             if (bytes.LongLength > MaxArchivoBytes)
-                throw new ValidationError("El archivo supera el tamaño máximo permitido de 10 MB.");
+                throw new ValidationError("El archivo supera el tamaño máximo permitido de 25 MB.");
             if (!FirmaValida(extension, bytes))
                 throw new ValidationError("El contenido del archivo no corresponde a un PDF o Word válido.");
 
