@@ -37,7 +37,7 @@ namespace mediTool.Controllers
         [Authorize(Policy = "AdminOrProfesional")]
         [HttpPost]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(11 * 1024 * 1024)]
+        [RequestSizeLimit(26 * 1024 * 1024)]
         public async Task<IActionResult> Upload(int pacienteId, [FromForm] IFormFile? archivo, CancellationToken cancellationToken)
         {
             await EnsureAccesoAsync(pacienteId);
